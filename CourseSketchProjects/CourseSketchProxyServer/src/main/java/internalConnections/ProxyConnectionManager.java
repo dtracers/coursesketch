@@ -49,20 +49,21 @@ public final class ProxyConnectionManager extends MultiConnectionManager {
      *            {@link serverfront.ProxyServerWebSocketHandler}) in this case.
      */
     @Override
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public void connectServers(final AbstractServerWebSocketHandler serv) {
         // System.out.println("Open Recognition...");
         System.out.println("Open Login...");
         System.out.println(isConnectionLocal());
         System.out.println(isSecure());
         try {
-            createAndAddConnection(serv, isConnectionLocal(), "srl02.tamu.edu", LOGIN_PORT, isSecure(), LoginClientWebSocket.class);
+            createAndAddConnection(serv, isConnectionLocal(), "10.9.74.200", LOGIN_PORT, isSecure(), LoginClientWebSocket.class);
         } catch (ConnectionException e) {
             e.printStackTrace();
         }
 
         System.out.println("Open Data...");
         try {
-            createAndAddConnection(serv, isConnectionLocal(), "srl04.tamu.edu", DATABASE_PORT, isSecure(), DataClientWebSocket.class);
+            createAndAddConnection(serv, isConnectionLocal(), "10.9.74.201", DATABASE_PORT, isSecure(), DataClientWebSocket.class);
         } catch (ConnectionException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -70,7 +71,7 @@ public final class ProxyConnectionManager extends MultiConnectionManager {
 
         System.out.println("Open Answer...");
         try {
-            createAndAddConnection(serv, isConnectionLocal(), "srl04.tamu.edu", ANSWER_PORT, isSecure(), AnswerClientWebSocket.class);
+            createAndAddConnection(serv, isConnectionLocal(), "10.9.74.203", ANSWER_PORT, isSecure(), AnswerClientWebSocket.class);
         } catch (ConnectionException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
