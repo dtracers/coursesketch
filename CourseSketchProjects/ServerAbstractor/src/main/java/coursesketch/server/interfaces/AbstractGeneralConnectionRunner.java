@@ -58,11 +58,6 @@ public abstract class AbstractGeneralConnectionRunner {
     private int port = DEFAULT_PORT;
 
     /**
-     * The url that the server runs on.
-     */
-    private String host;
-
-    /**
      * The timeoutTime of a connection.
      */
     private long timeoutTime;
@@ -93,11 +88,6 @@ public abstract class AbstractGeneralConnectionRunner {
      */
     @SuppressWarnings("PMD.ImmutableField")
     private boolean secure = false;
-
-    /**
-     * The password for the keystore.
-     */
-    private String keyManagerPassword;
 
     /**
      * The location the keystore is stored in.
@@ -133,9 +123,8 @@ public abstract class AbstractGeneralConnectionRunner {
             local = true;
             if (arguments.length >= 2 && arguments[1].equals("secure")) {
                 System.out.println("Running local code!");
-                host = "localhost";
                 //keystorePassword = "sketchrec";
-                keyManagerPassword = "sketchrec";
+                //keyManagerPassword = "sketchrec";
                 keystorePath = "keystore.jks";
                 //truststorePath = "truststore.jks";
                 secure = true;
