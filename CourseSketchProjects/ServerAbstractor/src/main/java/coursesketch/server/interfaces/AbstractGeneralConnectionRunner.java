@@ -97,7 +97,7 @@ public abstract class AbstractGeneralConnectionRunner {
     /**
      * The location the truststore is stored in.
      */
-    private String certificatePath = "";
+    private String certificatePath = null;
 
     /**
      * The main method that can be used to run a server.
@@ -125,7 +125,8 @@ public abstract class AbstractGeneralConnectionRunner {
                 System.out.println("Running local code!");
                 //keystorePassword = "sketchrec";
                 //keyManagerPassword = "sketchrec";
-                keystorePath = "keystore.jks";
+                keystorePath = "C:\\Users\\Larry Powell\\Documents\\GitHub\\coursesketch\\config\\localssl\\server.key";
+                certificatePath = "C:\\Users\\Larry Powell\\Documents\\GitHub\\coursesketch\\config\\localssl\\server.csr";
                 //truststorePath = "truststore.jks";
                 secure = true;
             }

@@ -11,11 +11,15 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.net.ssl.SSLException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.security.cert.CertificateException;
 
 /**
  * Created by gigemjt on 10/19/14.
@@ -57,8 +61,6 @@ public class GeneralConnectionRunner extends AbstractGeneralConnectionRunner {
      */
     protected GeneralConnectionRunner(final String... arguments) {
         super(arguments);
-        super.setCertificatePath("/Users/gigemjt/workspace/coursesketch/config/localssl/server.crt");
-        super.setKeystorePath("/Users/gigemjt/workspace/coursesketch/config/localssl/serverpk8.key");
     }
 
     /**
@@ -125,9 +127,16 @@ public class GeneralConnectionRunner extends AbstractGeneralConnectionRunner {
             openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
             openssl pkcs8 -topk8 -nocrypt -in server.key -out serverpk8.key
         */
+
+
         try {
-            sslCtx = SslContext.newServerContext(new File(iCertificatePath), new File(iKeystorePath));
+            SelfSignedCertificate ssc = new SelfSignedCertificate();
+            sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
+            //sslCtx = SslContext.newServerContext(new File(iCertificatePath), new File(iKeystorePath));
+            //final SslHandler sslHandler = new SslHandler(sslCtx);
         } catch (SSLException e) {
+            e.printStackTrace();
+        } catch (CertificateException e) {
             e.printStackTrace();
         }
     }

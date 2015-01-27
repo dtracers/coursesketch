@@ -30,8 +30,8 @@ public class ProxyRunner extends GeneralConnectionRunner {
      */
     @Override
     public final void executeRemoveEnvironment() {
-        setCertificatePath("Challeng3");
-        setKeystorePath("srl01_tamu_edu.jks");
+        super.setCertificatePath("C:\\Users\\Larry Powell\\Documents\\GitHub\\coursesketch\\CourseSketchProjects\\selfsignedcert.cer");
+        super.setKeystorePath("C:\\Users\\Larry Powell\\Documents\\GitHub\\coursesketch\\truststore.jks");
     }
 
     /**

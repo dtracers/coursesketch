@@ -31,7 +31,7 @@
             var clone = document.importNode(template.content, true);
 
             var newElement = new LoginSystem();
-          	var official = "128.194.133.77:8888"; // our server
+          	var official = "10.9.72.137:8888"; // our server
           	//var official = "srl01.tamu.edu:8888"; // our server
     		var test = "localhost:8888/websocket"; // local server
 
@@ -50,7 +50,7 @@
     		 */
             LoginSystem.prototype.createdCallback = function() {
     		    console.log("connection " + wsUri);
-                this.createConnection(wsUri, false, true);
+                this.createConnection(wsUri, true, true);
             };
 
             /**
