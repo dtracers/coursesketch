@@ -13,6 +13,24 @@ import protobuf.srl.request.Message.Request;
 public final class ProxyConnectionManager extends MultiConnectionManager {
 
     /**
+     * IP address for login server.
+     */
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    private static final String LOGIN_ADDRESS = "192.168.56.200";
+
+    /**
+     * IP address for database server.
+     */
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    private static final String DATABASE_ADDRESS = "192.168.56.201";
+
+    /**
+     * IP address for answer checker server.
+     */
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    private static final String ANSWER_ADDRESS = "192.168.56.203";
+
+    /**
      * Port for the login server.
      */
     private static final int LOGIN_PORT = 8886;
@@ -49,21 +67,20 @@ public final class ProxyConnectionManager extends MultiConnectionManager {
      *            {@link serverfront.ProxyServerWebSocketHandler}) in this case.
      */
     @Override
-    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public void connectServers(final AbstractServerWebSocketHandler serv) {
         // System.out.println("Open Recognition...");
         System.out.println("Open Login...");
         System.out.println(isConnectionLocal());
         System.out.println(isSecure());
         try {
-            createAndAddConnection(serv, isConnectionLocal(), "10.9.74.200", LOGIN_PORT, isSecure(), LoginClientWebSocket.class);
+            createAndAddConnection(serv, isConnectionLocal(), LOGIN_ADDRESS, LOGIN_PORT, isSecure(), LoginClientWebSocket.class);
         } catch (ConnectionException e) {
             e.printStackTrace();
         }
 
         System.out.println("Open Data...");
         try {
-            createAndAddConnection(serv, isConnectionLocal(), "10.9.74.201", DATABASE_PORT, isSecure(), DataClientWebSocket.class);
+            createAndAddConnection(serv, isConnectionLocal(), DATABASE_ADDRESS, DATABASE_PORT, isSecure(), DataClientWebSocket.class);
         } catch (ConnectionException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -71,7 +88,7 @@ public final class ProxyConnectionManager extends MultiConnectionManager {
 
         System.out.println("Open Answer...");
         try {
-            createAndAddConnection(serv, isConnectionLocal(), "10.9.74.203", ANSWER_PORT, isSecure(), AnswerClientWebSocket.class);
+            createAndAddConnection(serv, isConnectionLocal(), ANSWER_ADDRESS, ANSWER_PORT, isSecure(), AnswerClientWebSocket.class);
         } catch (ConnectionException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
