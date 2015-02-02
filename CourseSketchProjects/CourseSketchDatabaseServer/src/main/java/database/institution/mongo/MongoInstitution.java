@@ -87,7 +87,7 @@ public final class MongoInstitution implements Institution {
      * location.
      */
     private MongoInstitution() {
-        this("goldberglinux.tamu.edu");
+        this("localhost");
         // this("localhost");
     }
 

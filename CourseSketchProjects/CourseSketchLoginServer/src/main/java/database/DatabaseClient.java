@@ -61,7 +61,7 @@ public class DatabaseClient {
      * Creates the database at a specific url.
      */
     private DatabaseClient() {
-        this("goldberglinux.tamu.edu");
+        this("localhost");
     }
 
     /**
