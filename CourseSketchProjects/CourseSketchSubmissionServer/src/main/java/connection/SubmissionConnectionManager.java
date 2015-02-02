@@ -10,11 +10,16 @@ import utilities.ConnectionException;
  * @author gigemjt
  */
 public final class SubmissionConnectionManager extends MultiConnectionManager {
+    /**
+     * IP address for database server.
+     */
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    private static final String DATABASE_ADDRESS = "192.168.56.201";
 
     /**
      * Port number.
      */
-    private static final int PORT = 8885;
+    private static final int DATABASE_PORT = 8885;
 
     /**
      * Creates a default {@link MultiConnectionManager}.
@@ -35,7 +40,7 @@ public final class SubmissionConnectionManager extends MultiConnectionManager {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public void connectServers(final AbstractServerWebSocketHandler serv) {
         try {
-            createAndAddConnection(serv, isConnectionLocal(), "10.9.74.201", PORT, isSecure(), DataClientWebSocket.class);
+            createAndAddConnection(serv, isConnectionLocal(), DATABASE_ADDRESS, DATABASE_PORT, isSecure(), DataClientWebSocket.class);
         } catch (ConnectionException e) {
             e.printStackTrace();
         }

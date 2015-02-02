@@ -11,9 +11,15 @@ import utilities.ConnectionException;
  */
 public class AnswerConnectionManager extends MultiConnectionManager {
     /**
+     * IP address.
+     */
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    private static final String SUBMISSION_ADDRESS = "192.168.56.202";
+
+    /**
      * Port number.
      */
-    private static final int PORT = 8883;
+    private static final int SUBMISSION_PORT = 8883;
 
     /**
      * Creates a default {@link MultiConnectionManager}.
@@ -32,11 +38,10 @@ public class AnswerConnectionManager extends MultiConnectionManager {
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public final void connectServers(final AbstractServerWebSocketHandler parent) {
         try {
-            createAndAddConnection(parent, isConnectionLocal(), "10.9.74.200.202",
-                    PORT, this.isSecure(), SubmissionClientWebSocket.class);
+            createAndAddConnection(parent, isConnectionLocal(), SUBMISSION_ADDRESS,
+                    SUBMISSION_PORT, this.isSecure(), SubmissionClientWebSocket.class);
         } catch (ConnectionException e) {
             e.printStackTrace();
         }
