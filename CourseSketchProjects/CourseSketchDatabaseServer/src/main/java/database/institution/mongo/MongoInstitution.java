@@ -86,8 +86,9 @@ public final class MongoInstitution implements Institution {
      * A default constructor that creates an instance at a specific database
      * location.
      */
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private MongoInstitution() {
-        this("localhost");
+        this("192.168.56.201");
         // this("localhost");
     }
 
