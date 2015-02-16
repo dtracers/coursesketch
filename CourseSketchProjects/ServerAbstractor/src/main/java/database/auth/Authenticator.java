@@ -305,7 +305,6 @@ public final class Authenticator {
      * @param checkTime The time that the date check is checking against.
      * @param checkType The rules at that give a correct or false response.
      * @return True if all checked values are valid
-     * @throws DatabaseAccessException
      */
     public boolean isAuthenticated(final String collection, final String itemId,
             final String userId, final long checkTime, final AuthType checkType) {
