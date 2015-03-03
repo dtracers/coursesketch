@@ -2,7 +2,12 @@ package connection;
 
 import coursesketch.server.interfaces.AbstractServerWebSocketHandler;
 import coursesketch.server.interfaces.MultiConnectionManager;
+//import sun.rmi.runtime.Log;
 import utilities.ConnectionException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utilities.LoggingConstants;
 
 /**
  * Creates a connection to the submission server.
@@ -13,6 +18,11 @@ public class DatabaseConnectionManager extends MultiConnectionManager {
      */
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private static final String SUBMISSION_ADDRESS = "192.168.56.202";
+
+    /**
+     *  Declaration and Definition of Logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(DatabaseConnectionManager.class);
 
     /**
      * The port number of the submission server.
@@ -40,7 +50,7 @@ public class DatabaseConnectionManager extends MultiConnectionManager {
             createAndAddConnection(serv, this.isConnectionLocal(), SUBMISSION_ADDRESS, SUBMISSION_PORT, this.isSecure(),
                     SubmissionClientWebSocket.class);
         } catch (ConnectionException e) {
-            e.printStackTrace();
+            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
         }
     }
 }
