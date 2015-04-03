@@ -1,7 +1,7 @@
 package database;
 
 import org.junit.Test;
-import protobuf.srl.school.School.DateTime;
+import protobuf.srl.utils.Util.DateTime;
 
 import static org.junit.Assert.assertEquals;
 

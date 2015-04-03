@@ -4,12 +4,22 @@ import coursesketch.server.interfaces.AbstractServerWebSocketHandler;
 import coursesketch.server.interfaces.MultiConnectionManager;
 import utilities.ConnectionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utilities.LoggingConstants;
+
 /**
  * A manager for holding all of the connections that were created.
  *
  * @author gigemjt
  */
 public class AnswerConnectionManager extends MultiConnectionManager {
+
+    /**
+     * Declaration and Definition of Logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(AnswerConnectionManager.class);
+
     /**
      * Port number.
      */
@@ -38,7 +48,7 @@ public class AnswerConnectionManager extends MultiConnectionManager {
             createAndAddConnection(parent, isConnectionLocal(), "10.9.74.200.202",
                     PORT, this.isSecure(), SubmissionClientWebSocket.class);
         } catch (ConnectionException e) {
-            e.printStackTrace();
+            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
         }
     }
 }

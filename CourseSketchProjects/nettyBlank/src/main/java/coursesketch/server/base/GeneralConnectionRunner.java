@@ -11,13 +11,13 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import org.apache.commons.lang3.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utilities.LoggingConstants;
 
 import javax.net.ssl.SSLException;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 
@@ -26,6 +26,11 @@ import java.security.cert.CertificateException;
  */
 @SuppressWarnings("PMD.TooManyMethods")
 public class GeneralConnectionRunner extends AbstractGeneralConnectionRunner {
+
+    /**
+     * Declaration/Definition of Logger.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(GeneralConnectionRunner.class);
 
     /**
      * 1000ms = 1s.
@@ -135,9 +140,9 @@ public class GeneralConnectionRunner extends AbstractGeneralConnectionRunner {
             //sslCtx = SslContext.newServerContext(new File(iCertificatePath), new File(iKeystorePath));
             //final SslHandler sslHandler = new SslHandler(sslCtx);
         } catch (SSLException e) {
-            e.printStackTrace();
+            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
         } catch (CertificateException e) {
-            e.printStackTrace();
+            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
         }
     }
 
@@ -168,7 +173,7 @@ public class GeneralConnectionRunner extends AbstractGeneralConnectionRunner {
                     final Channel channel = strap.sync().channel();
                     channel.closeFuture().sync();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
                 } finally {
                     bossGroup.shutdownGracefully();
                     workerGroup.shutdownGracefully();
@@ -179,10 +184,10 @@ public class GeneralConnectionRunner extends AbstractGeneralConnectionRunner {
         try {
             Thread.sleep(ONE_SECOND);
             final boolean assumedRunning = !workerGroup.isShutdown() && !workerGroup.isTerminated() && !workerGroup.isShuttingDown();
-            System.out.println("Server is running hopefully = " + assumedRunning);
+            LOG.info("Server is running hopefully = {}", assumedRunning);
             getSocketInitailizerInstance().reconnect();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
         }
     }
 
