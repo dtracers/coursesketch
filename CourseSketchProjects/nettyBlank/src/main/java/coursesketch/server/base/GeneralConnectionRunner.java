@@ -21,6 +21,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utilities.LoggingConstants;
+
 /**
  * Created by gigemjt on 10/19/14.
  */
