@@ -1,5 +1,6 @@
 package database.user;
 
+import static database.DatabaseStringConstants.ADD_SET_COMMAND;
 import static database.DatabaseStringConstants.ADMIN;
 import static database.DatabaseStringConstants.COURSE_LIST;
 import static database.DatabaseStringConstants.CREDENTIALS;
@@ -18,7 +19,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 
 import database.DatabaseAccessException;
 import database.PasswordHash;
@@ -123,20 +123,19 @@ public final class UserManager {
     static void addCourseToUser(final DB database, final String userId, final String courseId) {
         LOG.debug("The users Id {}", userId);
         final DBCollection users = database.getCollection(USER_COLLECTION);
-        final BasicDBObject query = new BasicDBObject("$addToSet", new BasicDBObject(COURSE_LIST, courseId));
-        final DBRef myDbRef = new DBRef(database, USER_COLLECTION, userId);
-        final DBObject corsor = myDbRef.fetch();
+        final BasicDBObject query = new BasicDBObject(ADD_SET_COMMAND, new BasicDBObject(COURSE_LIST, courseId));
+        final DBObject cursor = database.getCollection(USER_COLLECTION).findOne(userId);
         LOG.info("query {}", query);
         LOG.info("courseId {}", courseId);
-        users.update(corsor, query);
+        users.update(cursor, query);
     }
 
     /*
      * public void registerUserForCourse(DB dbs, String userId, String CourseId)
      * { DBRef myDbRef = new DBRef(dbs, COURSE_COLLECTION, new
-     * ObjectId(userId)); DBObject corsor = myDbRef.fetch(); DBObject updateObj
+     * ObjectId(userId)); DBObject cursor = myDbRef.fetch(); DBObject updateObj
      * = null; DBCollection courses = dbs.getCollection(COURSE_COLLECTION);
      * updateObj = new BasicDBObject(ASSIGNMENT_LIST, assignmentId);
-     * courses.update(corsor, new BasicDBObject ("$addToSet",updateObj)); }
+     * courses.update(cursor, new BasicDBObject ("$addToSet",updateObj)); }
      */
 }

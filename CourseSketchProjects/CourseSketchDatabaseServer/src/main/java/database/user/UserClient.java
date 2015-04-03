@@ -1,23 +1,17 @@
 package database.user;
 
-import static database.DatabaseStringConstants.DATABASE;
-import protobuf.srl.school.School.SrlSchool;
-import protobuf.srl.school.School.SrlUser;
-
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
-
 import database.DatabaseAccessException;
 import database.UserUpdateHandler;
 import database.auth.AuthenticationException;
 import database.institution.mongo.MongoInstitution;
+import protobuf.srl.school.School.SrlSchool;
+import protobuf.srl.school.School.SrlUser;
 
-import java.net.UnknownHostException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import utilities.LoggingConstants;
+import static database.DatabaseStringConstants.DATABASE;
 
 /**
  * A client for all user data.  This has its own database and instance.
@@ -25,11 +19,6 @@ import utilities.LoggingConstants;
  *
  */
 public final class UserClient {
-
-    /**
-     * Declaration and Definition of Logger.
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(UserClient.class);
 
     /**
      * A specific instance used for client actions.
@@ -47,15 +36,7 @@ public final class UserClient {
      * @param url The url is the location of the server.
      */
     private UserClient(final String url) {
-        MongoClient mongoClient = null;
-        try {
-            mongoClient = new MongoClient(url);
-        } catch (UnknownHostException e) {
-            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
-        }
-        if (mongoClient == null) {
-            return;
-        }
+        final MongoClient mongoClient = new MongoClient(url);
         database = mongoClient.getDB(DATABASE);
     }
 
@@ -98,15 +79,7 @@ public final class UserClient {
         if (testOnly && fakeDB != null) {
             database = fakeDB;
         } else {
-            MongoClient mongoClient = null;
-            try {
-                mongoClient = new MongoClient("localhost");
-            } catch (UnknownHostException e) {
-                LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
-            }
-            if (mongoClient == null) {
-                return;
-            }
+            final MongoClient mongoClient = new MongoClient("localhost");
             if (testOnly) {
                 database = mongoClient.getDB("test");
             } else {

@@ -3,7 +3,6 @@ import com.github.fakemongo.junit.FongoRule;
 import com.mongodb.DB;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import database.DatabaseAccessException;
 import database.auth.AuthenticationException;
 import database.auth.Authenticator;
@@ -13,9 +12,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import protobuf.srl.school.School;
 import protobuf.srl.school.School.SrlBankProblem;
 import protobuf.srl.utils.Util;
@@ -67,8 +63,7 @@ public class BankProblemManagerTest {
 
         String problemBankId = BankProblemManager.mongoInsertBankProblem(db, bankProblem.build());
 
-        final DBRef myDbRef = new DBRef(db, PROBLEM_BANK_COLLECTION, new ObjectId(problemBankId));
-        final DBObject mongoBankProblem = myDbRef.fetch();
+        final DBObject mongoBankProblem = db.getCollection(PROBLEM_BANK_COLLECTION).findOne(new ObjectId(problemBankId));
 
         Assert.assertEquals(mongoBankProblem.get(QUESTION_TEXT), FAKE_QUESTION_TEXT);
         Assert.assertEquals(mongoBankProblem.get(COURSE_TOPIC), FAKE_QUESTION_TEXT);
@@ -88,8 +83,7 @@ public class BankProblemManagerTest {
 
         String problemBankId = BankProblemManager.mongoInsertBankProblem(db, bankProblem.build());
 
-        final DBRef myDbRef = new DBRef(db, PROBLEM_BANK_COLLECTION, new ObjectId(problemBankId));
-        final DBObject mongoBankProblem = myDbRef.fetch();
+        final DBObject mongoBankProblem = db.getCollection(PROBLEM_BANK_COLLECTION).findOne(new ObjectId(problemBankId));
 
         Assert.assertEquals(mongoBankProblem.get(USERS), permissionBuilder.getUserPermissionList());
         Assert.assertEquals(mongoBankProblem.get(ADMIN), permissionBuilder.getAdminPermissionList());
@@ -254,8 +248,7 @@ public class BankProblemManagerTest {
 
         BankProblemManager.mongoRegisterCourseProblem(fauth, db, USER_USER, problem.build());
 
-        final DBRef myDbRef = new DBRef(db, PROBLEM_BANK_COLLECTION, new ObjectId(problemBankId));
-        final DBObject mongoBankProblem = myDbRef.fetch();
+        final DBObject mongoBankProblem = db.getCollection(PROBLEM_BANK_COLLECTION).findOne(new ObjectId(problemBankId));
 
         Assert.assertEquals(courseId, ((List) mongoBankProblem.get(USERS)).get(0));
     }

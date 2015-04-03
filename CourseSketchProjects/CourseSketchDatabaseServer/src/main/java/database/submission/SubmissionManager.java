@@ -5,7 +5,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import connection.SubmissionClientWebSocket;
 import coursesketch.server.interfaces.MultiConnectionManager;
 import database.DatabaseAccessException;
@@ -74,24 +73,23 @@ public final class SubmissionManager {
         LOG.info("Inserting an experiment {}", experiment);
         LOG.info("Database is {}", dbs);
         LOG.info("Problem id: {}", problemId);
-        final DBRef myDbRef = new DBRef(dbs, experiment ? EXPERIMENT_COLLECTION : SOLUTION_COLLECTION, new ObjectId(problemId));
         final DBCollection collection = dbs.getCollection(experiment ? EXPERIMENT_COLLECTION : SOLUTION_COLLECTION);
-        final DBObject corsor = myDbRef.fetch();
+        final DBObject cursor = collection.findOne(new ObjectId(problemId));
 
-        LOG.info("corsor: {}", corsor);
+        LOG.info("cursor: {}", cursor);
         LOG.info("uniuq id: {}", uniqueId);
 
         final BasicDBObject queryObj = new BasicDBObject(experiment ? uniqueId : SOLUTION_ID, submissionId);
-        if (corsor == null) {
+        if (cursor == null) {
             LOG.info("Creating a new instance to this old itemid");
             queryObj.append(SELF_ID, new ObjectId(problemId));
             collection.insert(queryObj);
-            // we need to create a new corsor
+            // we need to create a new cursor
         } else {
             LOG.info("adding a new submission to this old itemid");
             // insert the submissionId, if it is an experiment then we need to
             // use the uniqueId to make it work.
-            collection.update(corsor, new BasicDBObject("$set", queryObj));
+            collection.update(cursor, new BasicDBObject("$set", queryObj));
         }
     }
 
@@ -111,12 +109,11 @@ public final class SubmissionManager {
         requestBuilder.setRequestType(MessageType.DATA_REQUEST);
         final ItemRequest.Builder build = ItemRequest.newBuilder();
         build.setQuery(ItemQuery.EXPERIMENT);
-        final DBRef myDbRef = new DBRef(dbs, EXPERIMENT_COLLECTION, new ObjectId(problemId));
-        final DBObject corsor = myDbRef.fetch();
-        if (corsor == null) {
+        final DBObject cursor = dbs.getCollection(EXPERIMENT_COLLECTION).findOne(new ObjectId(problemId));
+        if (cursor == null) {
             throw new DatabaseAccessException("The student has not submitted anything for this problem");
         }
-        final String sketchId = "" + corsor.get(userId);
+        final String sketchId = "" + cursor.get(userId);
         LOG.info("SketchId: ", sketchId);
         if ("null".equals(sketchId)) {
             throw new DatabaseAccessException("The student has not submitted anything for this problem");
@@ -149,7 +146,7 @@ public final class SubmissionManager {
     public static void mongoGetAllExperimentsAsInstructor(final Authenticator authenticator, final DB dbs, final String userId,
             final String problemId, final String sessionInfo, final MultiConnectionManager internalConnections, final ByteString review)
             throws DatabaseAccessException, AuthenticationException {
-        final DBObject problem = new DBRef(dbs, COURSE_PROBLEM_COLLECTION, new ObjectId(problemId)).fetch();
+        final DBObject problem = dbs.getCollection(COURSE_PROBLEM_COLLECTION).findOne(new ObjectId(problemId));
         if (problem == null) {
             throw new DatabaseAccessException("Problem was not found with the following ID " + problemId);
         }
@@ -171,17 +168,16 @@ public final class SubmissionManager {
         requestBuilder.setRequestType(MessageType.DATA_REQUEST);
         final ItemRequest.Builder build = ItemRequest.newBuilder();
         build.setQuery(ItemQuery.EXPERIMENT);
-        final DBRef myDbRef = new DBRef(dbs, EXPERIMENT_COLLECTION, new ObjectId(problemId));
-        final DBObject corsor = myDbRef.fetch();
-        for (String key : corsor.keySet()) {
+        final DBObject cursor = dbs.getCollection(EXPERIMENT_COLLECTION).findOne(new ObjectId(problemId));
+        for (String key : cursor.keySet()) {
             if (SELF_ID.equals(key)) {
                 continue;
             }
-            final Object experimentId = corsor.get(key);
+            final Object experimentId = cursor.get(key);
             if (experimentId == null || experimentId instanceof ObjectId) {
                 continue;
             }
-            final String sketchId = corsor.get(key).toString();
+            final String sketchId = cursor.get(key).toString();
             LOG.info("SketchId: {}", sketchId);
             build.addItemId(sketchId);
         }

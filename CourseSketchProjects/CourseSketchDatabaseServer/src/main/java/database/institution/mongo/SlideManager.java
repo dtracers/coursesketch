@@ -5,7 +5,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import database.DatabaseAccessException;
 import database.auth.AuthenticationException;
 import database.auth.Authenticator;
@@ -150,18 +149,17 @@ public final class SlideManager {
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.ModifiedCyclomaticComplexity", "PMD.StdCyclomaticComplexity" })
     public static LectureSlide mongoGetLectureSlide(final Authenticator authenticator, final DB dbs, final String slideId, final String userId,
             final long checkTime) throws AuthenticationException, DatabaseAccessException {
-        final DBRef myDbRef = new DBRef(dbs, SLIDE_COLLECTION, new ObjectId(slideId));
-        final DBObject corsor = myDbRef.fetch();
-        if (corsor == null) {
+        final DBObject cursor = dbs.getCollection(SLIDE_COLLECTION).findOne(new ObjectId(slideId));
+        if (cursor == null) {
             throw new DatabaseAccessException("Slide was not found with the following ID " + slideId, true);
         }
 
         boolean isAdmin, isMod, isUsers;
-        isAdmin = authenticator.checkAuthentication(userId, (List<String>) corsor.get(ADMIN));
-        isMod = authenticator.checkAuthentication(userId, (List<String>) corsor.get(MOD));
+        isAdmin = authenticator.checkAuthentication(userId, (List<String>) cursor.get(ADMIN));
+        isMod = authenticator.checkAuthentication(userId, (List<String>) cursor.get(MOD));
 
         // FUTURE Fix this! maybe make the lecture a user? not really sure for now everyone is a user.
-        isUsers = true; // authenticator.checkAuthentication(userId, (List<String>) corsor.get(USERS));
+        isUsers = true; // authenticator.checkAuthentication(userId, (List<String>) cursor.get(USERS));
 
         if (!isAdmin && !isMod && !isUsers) {
             throw new AuthenticationException(AuthenticationException.INVALID_PERMISSION);
@@ -173,15 +171,15 @@ public final class SlideManager {
         final Authenticator.AuthType auth = new Authenticator.AuthType();
         auth.setCheckDate(true);
         auth.setCheckUser(true);
-        if (isUsers && !authenticator.isAuthenticated(LECTURE_COLLECTION, (String) corsor.get(LECTURE_ID), userId, checkTime, auth)) {
+        if (isUsers && !authenticator.isAuthenticated(LECTURE_COLLECTION, (String) cursor.get(LECTURE_ID), userId, checkTime, auth)) {
             throw new AuthenticationException(AuthenticationException.INVALID_DATE);
         }
 
         final School.State.Builder stateBuilder = School.State.newBuilder();
         // FUTURE: add this to all fields!
         // An assignment is only publishable after a certain criteria is met
-        if (corsor.containsField(STATE_PUBLISHED)) {
-            final boolean published = (Boolean) corsor.get(STATE_PUBLISHED);
+        if (cursor.containsField(STATE_PUBLISHED)) {
+            final boolean published = (Boolean) cursor.get(STATE_PUBLISHED);
             if (published) {
                 stateBuilder.setPublished(true);
             } else {
@@ -198,7 +196,7 @@ public final class SlideManager {
         exactSlide.setId(slideId);
 
         // sets the majority of the slide data
-        setSlideData(exactSlide, corsor);
+        setSlideData(exactSlide, cursor);
 
         return exactSlide.build();
     }
@@ -226,12 +224,10 @@ public final class SlideManager {
     public static boolean mongoUpdateLectureSlide(final Authenticator authenticator, final DB dbs, final String lectureSlideId, final String userId,
             final LectureSlide lectureSlide) throws AuthenticationException, DatabaseAccessException {
         boolean update = false;
-        final DBRef myDbRef = new DBRef(dbs, SLIDE_COLLECTION, new ObjectId(lectureSlideId));
-        final DBObject corsor = myDbRef.fetch();
+        final DBObject cursor = dbs.getCollection(SLIDE_COLLECTION).findOne(new ObjectId(lectureSlideId));
         final DBCollection lectureSlides = dbs.getCollection(SLIDE_COLLECTION);
 
-        final DBRef parentLecture = new DBRef(dbs, LECTURE_COLLECTION, new ObjectId(lectureSlide.getLectureId()));
-        final DBObject lectureCursor = parentLecture.fetch();
+        final DBObject lectureCursor = dbs.getCollection(LECTURE_COLLECTION).findOne(new ObjectId(lectureSlide.getLectureId()));
 
         final boolean isAdmin = authenticator.checkAuthentication(userId, (List<String>) lectureCursor.get("Admin"));
         final boolean isMod = authenticator.checkAuthentication(userId, (List<String>) lectureCursor.get("Mod"));
@@ -245,7 +241,7 @@ public final class SlideManager {
             for (Lecturedata.LectureElement element : lectureSlide.getElementsList()) {
                 list.add(createQueryFromElement(element));
             }
-            lectureSlides.update(corsor, new BasicDBObject(SET_COMMAND, new BasicDBObject(ELEMENT_LIST, list)));
+            lectureSlides.update(cursor, new BasicDBObject(SET_COMMAND, new BasicDBObject(ELEMENT_LIST, list)));
             update = true;
         }
         return update;

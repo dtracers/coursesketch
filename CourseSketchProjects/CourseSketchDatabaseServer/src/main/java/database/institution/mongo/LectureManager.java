@@ -4,7 +4,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import database.DatabaseAccessException;
 import database.RequestConverter;
 import database.UserUpdateHandler;
@@ -133,8 +132,7 @@ public final class LectureManager {
      *         the list of list of permissions that is getting added.
      */
     /*package-private*/static void mongoInsertDefaultGroupId(final DB dbs, final String lectureId, final List<String>... ids) {
-        final DBRef myDbRef = new DBRef(dbs, LECTURE_COLLECTION, new ObjectId(lectureId));
-        final DBObject cursor = myDbRef.fetch();
+        final DBObject cursor = dbs.getCollection(LECTURE_COLLECTION).findOne(new ObjectId(lectureId));
         final DBCollection lectures = dbs.getCollection(LECTURE_COLLECTION);
 
         final BasicDBObject updateQuery = MongoAuthenticator.createMongoCopyPermissionQeuery(ids);
@@ -167,16 +165,15 @@ public final class LectureManager {
     @SuppressWarnings({ "PMD.CyclomaticComplexity", "PMD.ModifiedCyclomaticComplexity", "PMD.StdCyclomaticComplexity" })
     public static Lecture mongoGetLecture(final Authenticator authenticator, final DB dbs, final String lectureId, final String userId,
             final long checkTime) throws AuthenticationException, DatabaseAccessException {
-        final DBRef myDbRef = new DBRef(dbs, LECTURE_COLLECTION, new ObjectId(lectureId));
-        final DBObject corsor = myDbRef.fetch();
-        if (corsor == null) {
+        final DBObject cursor = dbs.getCollection(LECTURE_COLLECTION).findOne(new ObjectId(lectureId));
+        if (cursor == null) {
             throw new DatabaseAccessException("Lecture was not found with the following ID " + lectureId, true);
         }
 
         boolean isAdmin, isMod, isUsers;
-        isAdmin = authenticator.checkAuthentication(userId, (List<String>) corsor.get(ADMIN));
-        isMod = authenticator.checkAuthentication(userId, (List<String>) corsor.get(MOD));
-        isUsers = authenticator.checkAuthentication(userId, (List<String>) corsor.get(USERS));
+        isAdmin = authenticator.checkAuthentication(userId, (List<String>) cursor.get(ADMIN));
+        isMod = authenticator.checkAuthentication(userId, (List<String>) cursor.get(MOD));
+        isUsers = authenticator.checkAuthentication(userId, (List<String>) cursor.get(USERS));
 
         if (!isAdmin && !isMod && !isUsers) {
             throw new AuthenticationException(AuthenticationException.INVALID_PERMISSION);
@@ -188,15 +185,15 @@ public final class LectureManager {
         final Authenticator.AuthType auth = new Authenticator.AuthType();
         auth.setCheckDate(true);
         auth.setCheckUser(true);
-        if (isUsers && !authenticator.isAuthenticated(COURSE_COLLECTION, (String) corsor.get(COURSE_ID), userId, checkTime, auth)) {
+        if (isUsers && !authenticator.isAuthenticated(COURSE_COLLECTION, (String) cursor.get(COURSE_ID), userId, checkTime, auth)) {
             throw new AuthenticationException(AuthenticationException.INVALID_DATE);
         }
 
         final School.State.Builder stateBuilder = School.State.newBuilder();
         // FUTURE: add this to all fields!
         // An assignment is only publishable after a certain criteria is met
-        if (corsor.containsField(STATE_PUBLISHED)) {
-            final boolean published = (Boolean) corsor.get(STATE_PUBLISHED);
+        if (cursor.containsField(STATE_PUBLISHED)) {
+            final boolean published = (Boolean) cursor.get(STATE_PUBLISHED);
             if (published) {
                 stateBuilder.setPublished(true);
             } else {
@@ -213,15 +210,15 @@ public final class LectureManager {
         exactLecture.setId(lectureId);
 
         // sets the majority of the assignment data
-        setLectureData(exactLecture, corsor);
+        setLectureData(exactLecture, cursor);
 
-        setLectureStateAndDate(exactLecture, corsor);
+        setLectureStateAndDate(exactLecture, cursor);
 
         // if you are a user, the lecture must be open to view the insides
         if (isAdmin || isMod || (isUsers
                 && Authenticator.isTimeValid(checkTime, exactLecture.getAccessDate(), exactLecture.getCloseDate()))) {
-            if (corsor.get(SLIDES) != null) {
-                for (BasicDBObject obj : (List<BasicDBObject>) corsor.get(SLIDES)) {
+            if (cursor.get(SLIDES) != null) {
+                for (BasicDBObject obj : (List<BasicDBObject>) cursor.get(SLIDES)) {
                     final Lecturedata.IdsInLecture.Builder builder = Lecturedata.IdsInLecture.newBuilder();
                     builder.setId((String) obj.get(SELF_ID));
                     builder.setIsSlide((Boolean) obj.get(IS_SLIDE));
@@ -242,11 +239,11 @@ public final class LectureManager {
 
         final SrlPermission.Builder permissions = SrlPermission.newBuilder();
         if (isAdmin) {
-            permissions.addAllAdminPermission((ArrayList) corsor.get(ADMIN)); // admin
-            permissions.addAllModeratorPermission((ArrayList) corsor.get(MOD)); // admin
+            permissions.addAllAdminPermission((ArrayList) cursor.get(ADMIN)); // admin
+            permissions.addAllModeratorPermission((ArrayList) cursor.get(MOD)); // admin
         }
         if (isAdmin || isMod) {
-            permissions.addAllUserPermission((ArrayList) corsor.get(USERS)); // mod
+            permissions.addAllUserPermission((ArrayList) cursor.get(USERS)); // mod
             exactLecture.setAccessPermission(permissions.build());
         }
         return exactLecture.build();
@@ -271,12 +268,12 @@ public final class LectureManager {
      *
      * @param exactLecture
      *         a protobuf lecture builder.
-     * @param corsor
+     * @param cursor
      *         the current database pointer for the lecture.
      */
-    private static void setLectureStateAndDate(final Lecture.Builder exactLecture, final DBObject corsor) {
-        final Object accessDate = corsor.get(ACCESS_DATE);
-        final Object closeDate = corsor.get(CLOSE_DATE);
+    private static void setLectureStateAndDate(final Lecture.Builder exactLecture, final DBObject cursor) {
+        final Object accessDate = cursor.get(ACCESS_DATE);
+        final Object closeDate = cursor.get(CLOSE_DATE);
         if (accessDate == null) {
             exactLecture.setAccessDate(RequestConverter.getProtoFromMilliseconds(0));
         } else {
@@ -304,13 +301,12 @@ public final class LectureManager {
     public static boolean mongoUpdateLecture(final Authenticator authenticator, final DB dbs, final String lectureId, final String userId,
             final Lecture lecture) throws AuthenticationException, DatabaseAccessException {
         boolean update = false;
-        final DBRef myDbRef = new DBRef(dbs, LECTURE_COLLECTION, new ObjectId(lectureId));
-        final DBObject corsor = myDbRef.fetch();
+        final DBObject cursor = dbs.getCollection(LECTURE_COLLECTION).findOne(new ObjectId(lectureId));
         DBObject updateObj = null;
         final DBCollection lectures = dbs.getCollection(LECTURE_COLLECTION);
 
-        final ArrayList adminList = (ArrayList<Object>) corsor.get("Admin");
-        final ArrayList modList = (ArrayList<Object>) corsor.get("Mod");
+        final ArrayList adminList = (ArrayList<Object>) cursor.get("Admin");
+        final ArrayList modList = (ArrayList<Object>) cursor.get("Mod");
         boolean isAdmin, isMod;
         isAdmin = authenticator.checkAuthentication(userId, adminList);
         isMod = authenticator.checkAuthentication(userId, modList);
@@ -322,27 +318,27 @@ public final class LectureManager {
         if (isAdmin || isMod) {
             if (lecture.hasName()) {
                 updateObj = new BasicDBObject(NAME, lecture.getName());
-                lectures.update(corsor, new BasicDBObject(SET_COMMAND, updateObj));
+                lectures.update(cursor, new BasicDBObject(SET_COMMAND, updateObj));
                 update = true;
             }
             if (lecture.hasDescription()) {
                 updateObj = new BasicDBObject(DESCRIPTION, lecture.getDescription());
-                lectures.update(corsor, new BasicDBObject(SET_COMMAND, updateObj));
+                lectures.update(cursor, new BasicDBObject(SET_COMMAND, updateObj));
                 update = true;
             }
             if (lecture.getIdListCount() > 0) {
                 updateObj = new BasicDBObject(IDS_IN_LECTURE, lecture.getIdListList());
-                lectures.update(corsor, new BasicDBObject(SET_COMMAND, updateObj));
+                lectures.update(cursor, new BasicDBObject(SET_COMMAND, updateObj));
                 update = true;
             }
             if (lecture.hasAccessDate()) {
                 updateObj = new BasicDBObject(ACCESS_DATE, lecture.getAccessDate().getMillisecond());
-                lectures.update(corsor, new BasicDBObject(SET_COMMAND, updateObj));
+                lectures.update(cursor, new BasicDBObject(SET_COMMAND, updateObj));
                 update = true;
             }
             if (lecture.hasCloseDate()) {
                 updateObj = new BasicDBObject(CLOSE_DATE, lecture.getCloseDate().getMillisecond());
-                lectures.update(corsor, new BasicDBObject(SET_COMMAND, updateObj));
+                lectures.update(cursor, new BasicDBObject(SET_COMMAND, updateObj));
                 update = true;
             }
 
@@ -355,21 +351,21 @@ public final class LectureManager {
                     if (permissions.getAdminPermissionCount() > 0) {
                         updated.append(SET_COMMAND, new BasicDBObject(ADMIN, permissions.getAdminPermissionList()));
                         updateObj = new BasicDBObject(ADMIN, permissions.getAdminPermissionList());
-                        lectures.update(corsor, new BasicDBObject(SET_COMMAND, updateObj));
+                        lectures.update(cursor, new BasicDBObject(SET_COMMAND, updateObj));
                     }
                     if (permissions.getModeratorPermissionCount() > 0) {
                         updateObj = new BasicDBObject(MOD, permissions.getModeratorPermissionList());
-                        lectures.update(corsor, new BasicDBObject(SET_COMMAND, updateObj));
+                        lectures.update(cursor, new BasicDBObject(SET_COMMAND, updateObj));
                     }
                 }
                 if (permissions.getUserPermissionCount() > 0) {
                     updateObj = new BasicDBObject(USERS, permissions.getUserPermissionList());
-                    lectures.update(corsor, new BasicDBObject(SET_COMMAND, updateObj));
+                    lectures.update(cursor, new BasicDBObject(SET_COMMAND, updateObj));
                 }
             }
         }
         if (update) {
-            UserUpdateHandler.insertUpdates(dbs, ((List) corsor.get(USERS)), lectureId, UserUpdateHandler.ASSIGNMENT_CLASSIFICATION);
+            UserUpdateHandler.insertUpdates(dbs, ((List) cursor.get(USERS)), lectureId, UserUpdateHandler.ASSIGNMENT_CLASSIFICATION);
         }
         return true;
     }
@@ -391,8 +387,7 @@ public final class LectureManager {
      * @return true if the assignment was inserted correctly.
      */
     static boolean mongoInsertSlideIntoLecture(final DB dbs, final String lectureId, final String slideId, final boolean unlocked) {
-        final DBRef myDbRef = new DBRef(dbs, LECTURE_COLLECTION, new ObjectId(lectureId));
-        final DBObject cursor = myDbRef.fetch();
+        final DBObject cursor = dbs.getCollection(LECTURE_COLLECTION).findOne(new ObjectId(lectureId));
         DBObject updateObj = null;
         final DBCollection lectures = dbs.getCollection(LECTURE_COLLECTION);
         updateObj = createIdInLecture(slideId, true, unlocked);

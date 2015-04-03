@@ -5,7 +5,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import com.mongodb.MongoClient;
 import coursesketch.server.interfaces.MultiConnectionManager;
 import database.DatabaseAccessException;
@@ -29,7 +28,6 @@ import protobuf.srl.utils.Util.SrlPermission;
 import protobuf.srl.school.School.SrlProblem;
 import utilities.LoggingConstants;
 
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,15 +76,7 @@ public final class MongoInstitution implements Institution {
      *         The location that the server is taking place.
      */
     private MongoInstitution(final String url) {
-        MongoClient mongoClient = null;
-        try {
-            mongoClient = new MongoClient(url);
-        } catch (UnknownHostException e) {
-            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
-        }
-        if (mongoClient == null) {
-            return;
-        }
+        final MongoClient mongoClient = new MongoClient(url);
         database = mongoClient.getDB(DATABASE);
     }
 
@@ -114,15 +104,8 @@ public final class MongoInstitution implements Institution {
         if (testOnly && fakeDB != null) {
             database = fakeDB;
         } else {
-            MongoClient mongoClient = null;
-            try {
-                mongoClient = new MongoClient("localhost");
-            } catch (UnknownHostException e) {
-                LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
-            }
-            if (mongoClient == null) {
-                return;
-            }
+            final MongoClient mongoClient = new MongoClient("localhost");
+
             if (testOnly) {
                 database = mongoClient.getDB("test");
             } else {
@@ -157,8 +140,8 @@ public final class MongoInstitution implements Institution {
     @Override
     public void setUpIndexes() {
         LOG.info("Setting up the indexes");
-        database.getCollection(USER_COLLECTION).ensureIndex(new BasicDBObject(SELF_ID, 1).append("unique", true));
-        database.getCollection(UPDATE_COLLECTION).ensureIndex(new BasicDBObject(SELF_ID, 1).append("unique", true));
+        database.getCollection(USER_COLLECTION).createIndex(new BasicDBObject(SELF_ID, 1).append("unique", true));
+        database.getCollection(UPDATE_COLLECTION).createIndex(new BasicDBObject(SELF_ID, 1).append("unique", true));
     }
 
     @Override
@@ -433,11 +416,10 @@ public final class MongoInstitution implements Institution {
             return false;
         }
         // DO NOT USE THIS CODE ANY WHERE ESLE
-        final DBRef myDbRef = new DBRef(getInstance().database, USER_GROUP_COLLECTION, new ObjectId(userGroupId));
-        final DBObject corsor = myDbRef.fetch();
+        final DBObject cursor = getInstance().database.getCollection(USER_GROUP_COLLECTION).findOne(new ObjectId(userGroupId));
         final DBCollection courses = getInstance().database.getCollection(USER_GROUP_COLLECTION);
         final BasicDBObject object = new BasicDBObject("$addToSet", new BasicDBObject(USER_LIST, userId));
-        courses.update(corsor, object);
+        courses.update(cursor, object);
 
         UserClient.addCourseToUser(userId, courseId);
         return true;

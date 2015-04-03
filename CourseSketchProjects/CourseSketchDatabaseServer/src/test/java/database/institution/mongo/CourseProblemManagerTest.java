@@ -3,7 +3,6 @@ package database.institution.mongo;
 import com.github.fakemongo.junit.FongoRule;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import database.auth.Authenticator;
 import database.auth.MongoAuthenticator;
 import org.bson.types.ObjectId;
@@ -78,8 +77,7 @@ public class CourseProblemManagerTest {
 
         CourseProblemManager.mongoInsertCourseProblem(fauth, db, ADMIN_USER, problem.build());
 
-        final DBRef myDbRef = new DBRef(db, PROBLEM_BANK_COLLECTION, new ObjectId(problemBankId));
-        final DBObject mongoBankProblem = myDbRef.fetch();
+        final DBObject mongoBankProblem = db.getCollection(PROBLEM_BANK_COLLECTION).findOne(new ObjectId(problemBankId));
 
         Assert.assertEquals(courseId, ((List) mongoBankProblem.get(USERS)).get(0));
     }

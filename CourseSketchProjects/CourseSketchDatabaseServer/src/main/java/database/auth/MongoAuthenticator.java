@@ -3,7 +3,6 @@ package database.auth;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import database.RequestConverter;
 import database.auth.Authenticator.AuthenticationData;
 import org.bson.types.ObjectId;
@@ -42,9 +41,8 @@ public final class MongoAuthenticator implements AuthenticationDataCreator {
      */
     @Override
     public List<String> getUserList(final String userGroupId) {
-        final DBRef myDbRef = new DBRef(dbs, USER_GROUP_COLLECTION, new ObjectId(userGroupId));
-        final DBObject corsor = myDbRef.fetch();
-        return (List) corsor.get(USER_LIST);
+        final DBObject cursor = dbs.getCollection(USER_GROUP_COLLECTION).findOne(new ObjectId(userGroupId));
+        return (List) cursor.get(USER_LIST);
     }
 
     /**
@@ -54,18 +52,17 @@ public final class MongoAuthenticator implements AuthenticationDataCreator {
     public AuthenticationData getAuthGroups(final String collection, final String itemId) {
         final AuthenticationData data = new AuthenticationData();
 
-        final DBRef myDbRef = new DBRef(dbs, collection, new ObjectId(itemId));
-        final DBObject corsor = myDbRef.fetch();
+        final DBObject cursor = dbs.getCollection(collection).findOne(new ObjectId(itemId));
 
-        data.setUserList((List) ((List<Object>) corsor.get(USERS)));
+        data.setUserList((List) ((List<Object>) cursor.get(USERS)));
 
-        data.setModeratorList((List) ((List<Object>) corsor.get(MOD)));
+        data.setModeratorList((List) ((List<Object>) cursor.get(MOD)));
 
-        data.setAdminList((List) ((List<Object>) corsor.get(ADMIN)));
+        data.setAdminList((List) ((List<Object>) cursor.get(ADMIN)));
 
-        data.setAccessDate(RequestConverter.getProtoFromMilliseconds(((Number) corsor.get(ACCESS_DATE)).longValue()));
+        data.setAccessDate(RequestConverter.getProtoFromMilliseconds(((Number) cursor.get(ACCESS_DATE)).longValue()));
 
-        data.setCloseDate(RequestConverter.getProtoFromMilliseconds(((Number) corsor.get(CLOSE_DATE)).longValue()));
+        data.setCloseDate(RequestConverter.getProtoFromMilliseconds(((Number) cursor.get(CLOSE_DATE)).longValue()));
         return data;
     }
 

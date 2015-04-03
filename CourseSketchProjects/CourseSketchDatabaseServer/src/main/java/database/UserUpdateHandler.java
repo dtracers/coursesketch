@@ -3,21 +3,19 @@ package database;
 import com.mongodb.BasicDBList;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import database.auth.AuthenticationException;
 import database.institution.mongo.MongoInstitution;
 import database.institution.mongo.UpdateManager;
 import org.bson.BasicBSONObject;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import protobuf.srl.school.School.SrlSchool;
 import utilities.LoggingConstants;
 import utilities.TimeManager;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static database.DatabaseStringConstants.CLASSIFICATION;
 import static database.DatabaseStringConstants.GROUP_PREFIX;
@@ -137,8 +135,7 @@ public final class UserUpdateHandler {
 
         for (String group : users) {
             if (group.startsWith(GROUP_PREFIX)) {
-                final DBRef myDbRef = new DBRef(database, USER_GROUP_COLLECTION, new ObjectId(group.substring(GROUP_PREFIX_LENGTH)));
-                final DBObject corsor = myDbRef.fetch();
+                final DBObject corsor = database.getCollection(USER_GROUP_COLLECTION).findOne(new ObjectId(group.substring(GROUP_PREFIX_LENGTH)));
                 final ArrayList<String> list = (ArrayList<String>) corsor.get(USER_LIST);
                 insertUpdates(database, list, objectAffectedId, classification);
             } else {

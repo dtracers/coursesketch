@@ -5,7 +5,6 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 import database.DatabaseAccessException;
 import database.UserUpdateHandler;
 import database.auth.AuthenticationException;
@@ -15,7 +14,6 @@ import protobuf.srl.school.School;
 import protobuf.srl.school.School.SrlBankProblem;
 import protobuf.srl.utils.Util;
 import protobuf.srl.utils.Util.SrlPermission;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +27,13 @@ import static database.DatabaseStringConstants.KEYWORDS;
 import static database.DatabaseStringConstants.PROBLEM_BANK_COLLECTION;
 import static database.DatabaseStringConstants.QUESTION_TEXT;
 import static database.DatabaseStringConstants.QUESTION_TYPE;
+import static database.DatabaseStringConstants.SCRIPT;
 import static database.DatabaseStringConstants.SELF_ID;
 import static database.DatabaseStringConstants.SET_COMMAND;
 import static database.DatabaseStringConstants.SOLUTION_ID;
 import static database.DatabaseStringConstants.SOURCE;
 import static database.DatabaseStringConstants.SUB_TOPIC;
 import static database.DatabaseStringConstants.USERS;
-import static database.DatabaseStringConstants.SCRIPT;
 
 /**
  * Interfaces with the mongo database to manage bank problems.
@@ -104,8 +102,7 @@ public final class BankProblemManager {
      */
     public static SrlBankProblem mongoGetBankProblem(final Authenticator authenticator, final DB dbs, final String problemBankId, final String userId)
             throws AuthenticationException {
-        final DBRef myDbRef = new DBRef(dbs, PROBLEM_BANK_COLLECTION, new ObjectId(problemBankId));
-        final DBObject mongoBankProblem = myDbRef.fetch();
+        final DBObject mongoBankProblem = dbs.getCollection(PROBLEM_BANK_COLLECTION).findOne(new ObjectId(problemBankId));
 
         boolean isAdmin, isUsers;
         isAdmin = authenticator.checkAuthentication(userId, (ArrayList) mongoBankProblem.get(ADMIN));
@@ -180,11 +177,10 @@ public final class BankProblemManager {
     public static boolean mongoUpdateBankProblem(final Authenticator authenticator, final DB dbs, final String problemBankId, final String userId,
             final SrlBankProblem problem) throws AuthenticationException, DatabaseAccessException {
         boolean update = false;
-        final DBRef myDbRef = new DBRef(dbs, PROBLEM_BANK_COLLECTION, new ObjectId(problemBankId));
-        final DBObject corsor = myDbRef.fetch();
+        final DBObject cursor = dbs.getCollection(PROBLEM_BANK_COLLECTION).findOne(new ObjectId(problemBankId));
 
         boolean isAdmin;
-        isAdmin = authenticator.checkAuthentication(userId, (ArrayList) corsor.get(ADMIN));
+        isAdmin = authenticator.checkAuthentication(userId, (ArrayList) cursor.get(ADMIN));
         final DBCollection problemCollection = dbs.getCollection(PROBLEM_BANK_COLLECTION);
 
         if (!isAdmin) {
@@ -193,7 +189,7 @@ public final class BankProblemManager {
 
         final BasicDBObject updated = new BasicDBObject();
         if (problem.hasQuestionText()) {
-            problemCollection.update(corsor, new BasicDBObject(SET_COMMAND, new BasicDBObject(QUESTION_TEXT, problem.getQuestionText())));
+            problemCollection.update(cursor, new BasicDBObject(SET_COMMAND, new BasicDBObject(QUESTION_TEXT, problem.getQuestionText())));
             updated.append(SET_COMMAND, new BasicDBObject(QUESTION_TEXT, problem.getQuestionText()));
             update = true;
         }
@@ -247,8 +243,8 @@ public final class BankProblemManager {
         }
 
         if (update) {
-            problemCollection.update(corsor, updated);
-            final List<String> users = (List) corsor.get(USERS);
+            problemCollection.update(cursor, updated);
+            final List<String> users = (List) cursor.get(USERS);
             for (int i = 0; i < users.size(); i++) {
                 UserUpdateHandler.insertUpdate(dbs, users.get(i), problemBankId, "PROBLEM");
             }
@@ -316,8 +312,7 @@ public final class BankProblemManager {
             throw new DatabaseAccessException("Unable to register the course problem: missing course id [" + problem.getId() + "]");
         }
 
-        final DBRef myDbRef = new DBRef(dbs, PROBLEM_BANK_COLLECTION, new ObjectId(problem.getProblemBankId()));
-        final DBObject dbObject = myDbRef.fetch();
+        final DBObject dbObject = dbs.getCollection(PROBLEM_BANK_COLLECTION).findOne(new ObjectId(problem.getProblemBankId()));
 
         dbs.getCollection(PROBLEM_BANK_COLLECTION).update(dbObject, new BasicDBObject(ADD_SET_COMMAND,
                 new BasicDBObject(USERS, problem.getCourseId())));

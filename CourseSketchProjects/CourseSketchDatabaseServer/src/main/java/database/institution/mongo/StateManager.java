@@ -10,7 +10,6 @@ import protobuf.srl.school.School.State;
 
 import com.mongodb.DB;
 import com.mongodb.DBObject;
-import com.mongodb.DBRef;
 
 /**
  * The state managers handles the students states. States are stored by UserId
@@ -41,8 +40,7 @@ public final class StateManager {
      */
     public static State getState(final DB dbs, final String userId, final String classification, final String itemId) {
         final State.Builder state = State.newBuilder();
-        final DBRef myDbRef = new DBRef(dbs, STATE_COLLECTION, new ObjectId(userId));
-        final DBObject obj = myDbRef.fetch();
+        final DBObject obj = dbs.getCollection(STATE_COLLECTION).findOne(new ObjectId(userId));
         final DBObject stateInfo = (DBObject) obj.get(classification + itemId);
         state.setCompleted((Boolean) (stateInfo.get(STATE_COMPLETED)));
         state.setStarted((Boolean) (stateInfo.get(STATE_STARTED)));
