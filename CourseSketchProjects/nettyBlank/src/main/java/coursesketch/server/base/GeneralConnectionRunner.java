@@ -11,19 +11,15 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utilities.LoggingConstants;
+import utilities.SecureServerException;
 
 import javax.net.ssl.SSLException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.security.cert.CertificateException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import utilities.LoggingConstants;
 
 /**
  * Created by gigemjt on 10/19/14.
@@ -126,7 +122,8 @@ public class GeneralConnectionRunner extends AbstractGeneralConnectionRunner {
      *         the password for the keystore.
      */
     @Override
-    protected final void configureSSL(final String iKeystorePath, final String iCertificatePath) {
+    protected final void configureSSL(final String iKeystorePath, final String iCertificatePath) throws SecureServerException {
+
         // TO GENERATE NEEDED FILES FOR SSL.
         /*
             openssl genrsa -des3 -out server.key 1024
@@ -137,16 +134,19 @@ public class GeneralConnectionRunner extends AbstractGeneralConnectionRunner {
             openssl pkcs8 -topk8 -nocrypt -in server.key -out serverpk8.key
         */
 
-
         try {
-            SelfSignedCertificate ssc = new SelfSignedCertificate();
-            sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
+            final ClassLoader classLoader = getClass().getClassLoader();
+            final File keyStoreFile = new File(classLoader.getResource(iKeystorePath).getFile());
+            final File certificateFile = new File(classLoader.getResource(iCertificatePath).getFile());
+            LOG.debug("Keystore Found: {}", keyStoreFile.exists());
+            LOG.debug("Certificate Found: {}", certificateFile.exists());
+            sslCtx = SslContext.newServerContext(certificateFile, keyStoreFile);
             //sslCtx = SslContext.newServerContext(new File(iCertificatePath), new File(iKeystorePath));
             //final SslHandler sslHandler = new SslHandler(sslCtx);
         } catch (SSLException e) {
-            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
-        } catch (CertificateException e) {
-            LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
+            throw new SecureServerException("Failed to initialize SSL", e);
+        } catch (NullPointerException e) {
+            throw new SecureServerException("Failed to initialize SSL", e);
         }
     }
 

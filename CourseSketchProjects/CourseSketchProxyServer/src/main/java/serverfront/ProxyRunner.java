@@ -29,9 +29,9 @@ public class ProxyRunner extends GeneralConnectionRunner {
      * instead of listed in code.
      */
     @Override
-    public final void executeRemoveEnvironment() {
-        super.setCertificatePath("C:\\Users\\Larry Powell\\Documents\\GitHub\\coursesketch\\CourseSketchProjects\\selfsignedcert.cer");
-        super.setKeystorePath("C:\\Users\\Larry Powell\\Documents\\GitHub\\coursesketch\\truststore.jks");
+    public final void executeLocalEnvironment() {
+        super.setCertificatePath("server.crt");
+        super.setKeystorePath("serverpk8.key");
     }
 
     /**

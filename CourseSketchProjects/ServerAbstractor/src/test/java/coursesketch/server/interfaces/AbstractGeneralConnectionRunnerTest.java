@@ -1,17 +1,26 @@
 package coursesketch.server.interfaces;
 
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static org.mockito.Mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
+import utilities.SecureServerException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by gigemjt on 10/21/14.
@@ -21,7 +30,7 @@ import java.io.IOException;
 public class AbstractGeneralConnectionRunnerTest {
 
     @Test(timeout=1000)
-    public void testSSLIsConfigureIsCalledWhenSecureIsTrue() {
+    public void testSSLIsConfigureIsCalledWhenSecureIsTrue() throws SecureServerException {
         //createPartialMockAndInvokeDefaultConstructor
         AbstractGeneralConnectionRunner run = PowerMockito.mock(AbstractGeneralConnectionRunner.class);
         doCallRealMethod().when(run).start();
@@ -32,7 +41,7 @@ public class AbstractGeneralConnectionRunnerTest {
     }
 
     @Test(timeout=1000)
-    public void testSSLIsConfigureIsNOTCalledWhenSecureIsFalse() {
+    public void testSSLIsConfigureIsNOTCalledWhenSecureIsFalse() throws SecureServerException {
         AbstractGeneralConnectionRunner run = PowerMockito.mock(AbstractGeneralConnectionRunner.class);
         doCallRealMethod().when(run).start();
         doNothing().when(run).loadConfigurations();

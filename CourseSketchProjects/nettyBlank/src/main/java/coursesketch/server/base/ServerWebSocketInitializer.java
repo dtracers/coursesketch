@@ -8,8 +8,9 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslContext;
-
+import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,11 +155,14 @@ public class ServerWebSocketInitializer extends ChannelInitializer<SocketChannel
         }
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(MAX_SIZE));
+        pipeline.addLast(new WebSocketServerCompressionHandler());
         // TODO change this to the double locking check thingy
         if (singleWrapper == null) {
             singleWrapper = new ServerSocketWrapper(createServerSocket(), this.secure);
         }
         pipeline.addLast(singleWrapper);
+        LOG.info("Your session is protected by " + pipeline.get(SslHandler.class).engine().getSession().getCipherSuite() + " cipher suite.\n");
+
     }
 
     /**

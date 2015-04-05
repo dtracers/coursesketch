@@ -1,16 +1,16 @@
 package coursesketch.server.interfaces;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utilities.LoggingConstants;
+import utilities.SecureServerException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import utilities.LoggingConstants;
 
 /**
  * Sets up the server and manages calling the methods needed to start the server.
@@ -131,12 +131,6 @@ public abstract class AbstractGeneralConnectionRunner {
         if (arguments.length >= 1 && arguments[0].equals("local")) {
             local = true;
             if (arguments.length >= 2 && arguments[1].equals("secure")) {
-                System.out.println("Running local code!");
-                //keystorePassword = "sketchrec";
-                //keyManagerPassword = "sketchrec";
-                keystorePath = "C:\\Users\\Larry Powell\\Documents\\GitHub\\coursesketch\\config\\localssl\\server.key";
-                certificatePath = "C:\\Users\\Larry Powell\\Documents\\GitHub\\coursesketch\\config\\localssl\\server.csr";
-                //truststorePath = "truststore.jks";
                 secure = true;
             }
         } else {
@@ -169,7 +163,12 @@ public abstract class AbstractGeneralConnectionRunner {
         createServer();
 
         if (secure) {
-            configureSSL(keystorePath, certificatePath);
+            try {
+                configureSSL(keystorePath, certificatePath);
+            } catch (SecureServerException e) {
+                LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
+                System.exit(-1);
+            }
         }
         socketInitializerInstance = createSocketInitializer(getTimeoutTime(), secure, isLocal());
 
@@ -205,7 +204,7 @@ public abstract class AbstractGeneralConnectionRunner {
      * @param iCertificatePath the password for the keystore.
      * @param iKeystorePath the location of the keystore.
      */
-    protected abstract void configureSSL(String iKeystorePath, String iCertificatePath);
+    protected abstract void configureSSL(String iKeystorePath, String iCertificatePath) throws SecureServerException;
 
     /**
      * Called to add connections to the server.
