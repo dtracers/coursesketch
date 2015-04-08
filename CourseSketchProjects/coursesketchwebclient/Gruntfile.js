@@ -194,17 +194,6 @@ module.exports = function(grunt) {
                     }
                 ]
             },
-            appEngine: {
-                src: [ 'target/website/app.yaml' ],
-                overwrite: true,
-                replacements: [
-                    {
-                        // addes bower comment
-                        from: 'dev-coursesketch',
-                        to: 'prod-coursesketch'
-                    }
-                ]
-            },
             bowerSlash: {
                 src: '<%= fileConfigOptions.prodHtml %>',
                 overwrite: true,
@@ -213,6 +202,17 @@ module.exports = function(grunt) {
                         // addes bower comment
                         from: /=['"].*bower_components/g,
                         to: '="/bower_components'
+                    }
+                ]
+            },
+            appEngine: {
+                src: [ 'target/website/app.yaml' ],
+                overwrite: true,
+                replacements: [
+                    {
+                        // addes bower comment
+                        from: 'dev-coursesketch',
+                        to: 'prod-coursesketch'
                     }
                 ]
             },
