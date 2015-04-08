@@ -48,7 +48,7 @@ import java.io.File;
 public final class WebSocketRunner {
 
     static final boolean SSL = true;//System.getProperty("ssl") != null;
-    static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
+    static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8444" : "8080"));
 
     public static void main(final String[] args) throws Exception {
         // Configure SSL.
@@ -75,13 +75,13 @@ public final class WebSocketRunner {
         final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         final EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup)
+            ServerBootstrap server = new ServerBootstrap();
+            server.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new WebSocketServerInitializer(sslCtx));
 
-            final Channel ch = b.bind(PORT).sync().channel();
+            final Channel ch = server.bind(PORT).sync().channel();
 
             System.err.println("Open your web browser and navigate to " +
                     (SSL? "https" : "http") + "://127.0.0.1:" + PORT + '/');

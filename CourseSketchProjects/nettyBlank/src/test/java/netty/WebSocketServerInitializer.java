@@ -21,6 +21,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
 
 /**
  */
@@ -43,5 +44,7 @@ public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel
         pipeline.addLast(new HttpServerCodec());
         pipeline.addLast(new HttpObjectAggregator(65536));
         pipeline.addLast(new WebSocketServerHandler());
+        System.out.println("Your session is protected by " + pipeline.get(SslHandler.class).engine().getSession().getCipherSuite() + " cipher suite.\n");
+
     }
 }

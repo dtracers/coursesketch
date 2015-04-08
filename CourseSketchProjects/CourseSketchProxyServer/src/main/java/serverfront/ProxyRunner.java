@@ -13,7 +13,7 @@ public class ProxyRunner extends GeneralConnectionRunner {
     private static final long TIMEOUT_TIME = 30 * 60 * 1000;
 
     /** port of the proxy server. */
-    private static final int PROXY_PORT = 8888;
+    private static final int PROXY_PORT = 8443;
 
     /**
      * @param args
