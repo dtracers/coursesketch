@@ -205,6 +205,19 @@ module.exports = function(grunt) {
                     }
                 ]
             },
+            // TODO: change this into a plugin
+            runOncePlugins: {
+                src: [ 'target/website/bower_components/jquery/dist/jquery.js', 'target/website/bower_components/babel-polyfill/browser-polyfill.js',
+                        'target/website/bower_components/webcomponentsjs/webcomponents.js' ],
+                overwrite: true,
+                replacements: [
+                    {
+                        // addes bower comment
+                        from: /^/,
+                        to: 'validateFirstRun(document.currentScript);'
+                    }
+                ]
+            },
             appEngine: {
                 src: [ 'target/website/app.yaml' ],
                 overwrite: true,
@@ -352,7 +365,8 @@ module.exports = function(grunt) {
         grunt.task.run([
             'replace:bowerLoad',
             'wiredep',
-            'replace:bowerSlash'
+            'replace:bowerSlash',
+            'replace:runOncePlugins'
         ]);
     });
 
