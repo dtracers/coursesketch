@@ -200,9 +200,20 @@ module.exports = function(grunt) {
                 overwrite: true,
                 replacements: [
                     {
-                        // addes bower comment
+                        // looks for the bower_components url in scripts and replaces it with a /
                         from: /=['"].*bower_components/g,
                         to: '="/bower_components'
+                    }
+                ]
+            },
+            bowerRunOnce: {
+                src: '<%= fileConfigOptions.prodHtml %>',
+                overwrite: true,
+                replacements: [
+                    {
+                        // <!-- bower: -->
+                        from: /(([ \t]*)<!--\s*bower:*(\S*)\s*-->)/,
+                        to: '<!-- bower: -->\n<script src="bower_components/validate-first-run/validateRunOnce.js"></script>'
                     }
                 ]
             },
@@ -368,6 +379,7 @@ module.exports = function(grunt) {
         grunt.task.run([
             'replace:bowerLoad',
             'wiredep',
+            'replace:bowerRunOnce',
             'replace:bowerSlash',
             'replace:runOncePlugins'
         ]);
