@@ -139,7 +139,7 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
         database.putInCourses(course.id, course.toBase64(), function(e, request) {
             if (userCourseId.indexOf(course.id) === -1) {
                 userCourseId.push(course.id);
-                setCourseIdList(userCourseId);
+                //setCourseIdList(userCourseId);
             }
             if (courseCallback) {
                 courseCallback(e, request);
@@ -208,7 +208,7 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
             advanceDataListener.removeListener(Request.MessageType.DATA_REQUEST, CourseSketch.PROTOBUF_UTIL.ItemQuery.SCHOOL);
             // there was an error getting the user classes.
             if (!isUndefined(item.returnText) && item.returnText !== '' && item.returnText !== 'null' && item.returnText !== null) {
-                userHasCourses = false;
+                userHasCourses = true;
                 console.log(item.returnText);
                 courseCallback(new DatabaseException(item.returnText, 'Getting all courses for user ' + parent.getCurrentId()));
                 return;
@@ -224,7 +224,7 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
                 setCourse(course, setCourseCallback); // no callback is needed
             }
         });
-        if (userCourseId.length === 0 && userHasCourses && !onlyLocal) {
+        if (true || userCourseId.length === 0 && userHasCourses && !onlyLocal) {
             sendDataRequest(CourseSketch.PROTOBUF_UTIL.ItemQuery.SCHOOL, [ '' ]);
             // console.log('course list from server polled!');
         } else {
