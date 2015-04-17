@@ -127,6 +127,7 @@ function ProtoDatabase(databaseName, version, openCallback) {
                         return; // fail silently
                     }
 
+                    /*
                     var db = dbNameSpace.indexedDB.db;
                     var trans = db.transaction([ localTable.name ], 'readwrite');
                     var store = trans.objectStore(localTable.name);
@@ -144,6 +145,11 @@ function ProtoDatabase(databaseName, version, openCallback) {
                     request.onerror = function(e) {
                         console.log(e.value);
                     };
+                    */
+
+                    if (callback) {
+                        callback(e, request);
+                    }
                 };
 
                 /**
