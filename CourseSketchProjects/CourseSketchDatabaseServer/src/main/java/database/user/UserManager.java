@@ -72,9 +72,11 @@ public final class UserManager {
             // creates a user on the fly in the case that it does not exist.
             final SrlUser.Builder newUser = SrlUser.newBuilder();
             newUser.setUsername(userId).setEmail("INVALID@INVALID.com");
+            createUser(dbs, newUser.build(), userId);
 
             // TEMP FIX UNTIL USER DATA IS COPIED OVER!
             final DBCursor courseList = dbs.getCollection(COURSE_COLLECTION).find();
+            LOG.info("courses in mongo: {}", courseList);
             while (courseList.hasNext()) {
                 final DBObject mongoCourse = courseList.next();
                 final List<String> idList = new ArrayList<>();
@@ -82,11 +84,13 @@ public final class UserManager {
                 try {
                     final List<School.SrlCourse> courses = MongoInstitution.getInstance().getCourses(idList, userId);
                     if (!courses.isEmpty()) {
-                        newUser.addCourseList(mongoCourse.get(SELF_ID).toString());
+                        LOG.info("adding course to user: {}", mongoCourse.get(SELF_ID));
+                        addCourseToUser(dbs, userId, mongoCourse.get(SELF_ID).toString());
                     }
                 } catch (AuthenticationException e) {
                     if (e.getType() == AuthenticationException.INVALID_DATE) {
-                        newUser.addCourseList(mongoCourse.get(SELF_ID).toString());
+                        LOG.info("adding course to user: {}", mongoCourse.get(SELF_ID));
+                        addCourseToUser(dbs, userId, mongoCourse.get(SELF_ID).toString());
                     }
                     LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
                 }
@@ -94,7 +98,7 @@ public final class UserManager {
             // END TEMP FIX UNTIL USER DATA IS COPIED OVER!
 
             // creates a user on the fly in the case that it does not exist.
-            createUser(dbs, newUser.build(), userId);
+
             throw new DatabaseAccessException("Can not find a user with that id please try again in a couple of seconds", false);
         }
         return (ArrayList) cursor.get(COURSE_LIST);
