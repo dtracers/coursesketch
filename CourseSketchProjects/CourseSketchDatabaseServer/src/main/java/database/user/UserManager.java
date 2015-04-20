@@ -1,31 +1,33 @@
 package database.user;
 
-import static database.DatabaseStringConstants.ADMIN;
-import static database.DatabaseStringConstants.COURSE_LIST;
-import static database.DatabaseStringConstants.CREDENTIALS;
-import static database.DatabaseStringConstants.EMAIL;
-import static database.DatabaseStringConstants.SELF_ID;
-import static database.DatabaseStringConstants.USER_COLLECTION;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.DBRef;
+import database.DatabaseAccessException;
+import database.PasswordHash;
+import database.auth.AuthenticationException;
+import database.institution.mongo.MongoInstitution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import protobuf.srl.school.School;
+import protobuf.srl.school.School.SrlUser;
+import utilities.LoggingConstants;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
-import protobuf.srl.school.School.SrlUser;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.DBRef;
-
-import database.DatabaseAccessException;
-import database.PasswordHash;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import utilities.LoggingConstants;
+import static database.DatabaseStringConstants.ADMIN;
+import static database.DatabaseStringConstants.COURSE_COLLECTION;
+import static database.DatabaseStringConstants.COURSE_LIST;
+import static database.DatabaseStringConstants.CREDENTIALS;
+import static database.DatabaseStringConstants.EMAIL;
+import static database.DatabaseStringConstants.SELF_ID;
+import static database.DatabaseStringConstants.USER_COLLECTION;
 
 /**
  * Manages different user infomation.
@@ -66,7 +68,34 @@ public final class UserManager {
         final BasicDBObject query = new BasicDBObject(SELF_ID, userId);
         final DBObject cursor = users.findOne(query);
         if (cursor == null) {
-            throw new DatabaseAccessException("Can not find a user with that id", false);
+
+            // creates a user on the fly in the case that it does not exist.
+            final SrlUser.Builder newUser = SrlUser.newBuilder();
+            newUser.setUsername(userId).setEmail("INVALID@INVALID.com");
+
+            // TEMP FIX UNTIL USER DATA IS COPIED OVER!
+            final DBCursor courseList = dbs.getCollection(COURSE_COLLECTION).find();
+            while (courseList.hasNext()) {
+                final DBObject mongoCourse = courseList.next();
+                final List<String> idList = new ArrayList<>();
+                idList.add(mongoCourse.get(SELF_ID).toString());
+                try {
+                    final List<School.SrlCourse> courses = MongoInstitution.getInstance().getCourses(idList, userId);
+                    if (!courses.isEmpty()) {
+                        newUser.addCourseList(mongoCourse.get(SELF_ID).toString());
+                    }
+                } catch (AuthenticationException e) {
+                    if (e.getType() == AuthenticationException.INVALID_DATE) {
+                        newUser.addCourseList(mongoCourse.get(SELF_ID).toString());
+                    }
+                    LOG.error(LoggingConstants.EXCEPTION_MESSAGE, e);
+                }
+            }
+            // END TEMP FIX UNTIL USER DATA IS COPIED OVER!
+
+            // creates a user on the fly in the case that it does not exist.
+            createUser(dbs, newUser.build(), userId);
+            throw new DatabaseAccessException("Can not find a user with that id please try again in a couple of seconds", false);
         }
         return (ArrayList) cursor.get(COURSE_LIST);
     }
