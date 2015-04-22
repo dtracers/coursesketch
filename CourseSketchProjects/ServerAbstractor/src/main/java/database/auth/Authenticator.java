@@ -342,7 +342,7 @@ public final class Authenticator {
      * @throws DatabaseAccessException thrown if there are issues grabbing data for the authenticator.
      */
     public boolean isAuthenticated(final String collection, final String itemId,
-            final String userId, final long checkTime, final Authenticator.AuthType checkType) throws DatabaseAccessException {
+            final String userId, final long checkTime, final AuthType checkType) throws DatabaseAccessException {
 
         if (!checkType.validRequest()) {
             return false;
