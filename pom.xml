@@ -80,6 +80,13 @@
 		</profile>
 	</profiles>
 
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
 	<reporting>
 		<plugins>
 			<plugin>
@@ -426,7 +433,7 @@
 		<mockitoVersion>1.9.5</mockitoVersion>
 		<puppyVersion>[5.6,)</puppyVersion>
 		<junitVersion>4.11</junitVersion>
-		<fongoVersion>1.5.9</fongoVersion>
+		<fongoVersion>2.0.0-SNAPSHOT</fongoVersion>
 		<slf4jVersion>1.7.9</slf4jVersion>
 		<log4jVersion>2.1</log4jVersion>
 		<logbackVersion>1.1.1</logbackVersion>
@@ -550,11 +557,21 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!--
 		<dependency>
 			<groupId>com.github.fakemongo</groupId>
 			<artifactId>fongo</artifactId>
 			<version>${fongoVersion}</version>
 			<scope>test</scope>
+		</dependency>
+
+		While the fongo is not working.
+		-->
+
+		<dependency>
+			<groupId>com.github.fakemongo</groupId>
+			<artifactId>fongo</artifactId>
+			<version>66a66f19c8b4d68f9c1a725d5ee10b029b372180</version>
 		</dependency>
 
         <dependency>
