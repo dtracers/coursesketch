@@ -108,6 +108,7 @@ public final class BankProblemManager {
         isAdmin = authenticator.checkAuthentication(userId, (ArrayList) mongoBankProblem.get(ADMIN));
         isUsers = authenticator.checkAuthentication(userId, (ArrayList) mongoBankProblem.get(USERS));
 
+
         if (!isAdmin && !isUsers) {
             throw new AuthenticationException(AuthenticationException.INVALID_PERMISSION);
         }
@@ -149,7 +150,10 @@ public final class BankProblemManager {
             permissions.addAllUserPermission((ArrayList) dbObject.get(USERS)); // admin
             exactProblem.setAccessPermission(permissions.build());
         }
-        exactProblem.setScript((String) dbObject.get(SCRIPT));
+
+        if (dbObject.get(SCRIPT) != null) {
+            exactProblem.setScript((String) dbObject.get(SCRIPT));
+        }
         return exactProblem.build();
     }
 
@@ -178,6 +182,10 @@ public final class BankProblemManager {
             final SrlBankProblem problem) throws AuthenticationException, DatabaseAccessException {
         boolean update = false;
         final DBObject cursor = dbs.getCollection(PROBLEM_BANK_COLLECTION).findOne(new ObjectId(problemBankId));
+
+        if (cursor == null) {
+            throw new DatabaseAccessException("Bank Problem was not found with the following ID: " + problemBankId);
+        }
 
         boolean isAdmin;
         isAdmin = authenticator.checkAuthentication(userId, (ArrayList) cursor.get(ADMIN));
@@ -268,9 +276,11 @@ public final class BankProblemManager {
      * @return a list of {@link protobuf.srl.school.School.SrlBankProblem}.
      * @throws AuthenticationException
      *         Thrown if the user does not have permission to retrieve any bank problems.
+     * @throws DatabaseAccessException
+     *         Thrown if there are fields missing that make the problem inaccessible.
      */
     public static List<SrlBankProblem> mongoGetAllBankProblems(final Authenticator authenticator, final DB database, final String userId,
-            final String courseId, final int page) throws AuthenticationException {
+            final String courseId, final int page) throws AuthenticationException, DatabaseAccessException {
         final Authenticator.AuthType auth = new Authenticator.AuthType();
         auth.setCheckAdmin(true);
         if (!authenticator.isAuthenticated(COURSE_COLLECTION, courseId, userId, 0, auth)) {

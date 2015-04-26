@@ -49,10 +49,14 @@ public final class MongoAuthenticator implements AuthenticationDataCreator {
      * {@inheritDoc}
      */
     @Override
-    public AuthenticationData getAuthGroups(final String collection, final String itemId) {
+    public AuthenticationData getAuthGroups(final String collection, final String itemId) throws DatabaseAccessException {
         final AuthenticationData data = new AuthenticationData();
 
         final DBObject cursor = dbs.getCollection(collection).findOne(new ObjectId(itemId));
+
+        if (cursor == null) {
+            throw new DatabaseAccessException("Item: " + itemId + " was not found in collection: " + collection);
+        }
 
         data.setUserList((List) ((List<Object>) cursor.get(USERS)));
 

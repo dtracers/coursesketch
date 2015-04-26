@@ -12,6 +12,8 @@ import database.auth.Authenticator;
 import database.auth.Authenticator.AuthType;
 import database.auth.MongoAuthenticator;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import protobuf.srl.school.School.LatePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +93,7 @@ public final class AssignmentManager {
         final AuthType auth = new AuthType();
         auth.setCheckAdminOrMod(true);
         if (!authenticator.isAuthenticated(COURSE_COLLECTION, assignment.getCourseId(), userId, 0, auth)) {
-            throw new AuthenticationException(AuthenticationException.INVALID_PERMISSION);
+            throw new AuthenticationException("For course: " + assignment.getCourseId(), AuthenticationException.INVALID_PERMISSION);
         }
 
         final BasicDBObject query = new BasicDBObject(COURSE_ID, assignment.getCourseId()).append(NAME, assignment.getName())
@@ -163,7 +165,7 @@ public final class AssignmentManager {
         isUsers = authenticator.checkAuthentication(userId, (List<String>) mongoAssigment.get(USERS));
 
         if (!isAdmin && !isMod && !isUsers) {
-            throw new AuthenticationException(AuthenticationException.INVALID_PERMISSION);
+            throw new AuthenticationException("For assignment: " + assignmentId, AuthenticationException.INVALID_PERMISSION);
         }
 
         // check to make sure the assignment is within the time period that the
@@ -176,7 +178,7 @@ public final class AssignmentManager {
         // Throws an exception if a user (only) is trying to get an assignment when the class is not in session.
         if (isUsers && !isAdmin && !isMod && !authenticator
                 .isAuthenticated(COURSE_COLLECTION, (String) mongoAssigment.get(COURSE_ID), userId, checkTime, auth)) {
-            throw new AuthenticationException(AuthenticationException.INVALID_DATE);
+            throw new AuthenticationException("For assignment: " + assignmentId, AuthenticationException.INVALID_DATE);
         }
 
         final State.Builder stateBuilder = State.newBuilder();
@@ -188,7 +190,7 @@ public final class AssignmentManager {
                 stateBuilder.setPublished(true);
             } else {
                 if (!isAdmin || !isMod) {
-                    throw new DatabaseAccessException("The specific assignment is not published yet", true);
+                    throw new DatabaseAccessException("The specific assignment is not published yet: " + assignmentId, true);
                 }
                 stateBuilder.setPublished(false);
             }
@@ -355,14 +357,19 @@ public final class AssignmentManager {
         DBObject updateObj = null;
         final DBCollection assignmentCollection = dbs.getCollection(ASSIGNMENT_COLLECTION);
 
+        if (mongoAssignment == null) {
+            throw new DatabaseAccessException("Assignment was not found with the following ID: " + assignmentId, true);
+        }
+
         final ArrayList adminList = (ArrayList<Object>) mongoAssignment.get("Admin");
         final ArrayList modList = (ArrayList<Object>) mongoAssignment.get("Mod");
+
         boolean isAdmin, isMod;
         isAdmin = authenticator.checkAuthentication(userId, adminList);
         isMod = authenticator.checkAuthentication(userId, modList);
 
         if (!isAdmin && !isMod) {
-            throw new AuthenticationException(AuthenticationException.INVALID_PERMISSION);
+            throw new AuthenticationException("For assignment: " + assignmentId, AuthenticationException.INVALID_PERMISSION);
         }
 
         if (isAdmin || isMod) {
@@ -396,12 +403,6 @@ public final class AssignmentManager {
             }
             if (assignment.hasLatePolicy()) {
                 throw new DatabaseAccessException("Late policy does not exist in the database!");
-                /*
-                 updateObj = new BasicDBObject(LATE_POLICY,
-                 assignment.getLatePolicy().getNumber());
-                 courses.update(mongoAssignment, new BasicDBObject (SET_COMMAND,
-                 updateObj));
-                 */
             }
             if (assignment.hasGradeWeight()) {
                 updateObj = new BasicDBObject(GRADE_WEIGHT, assignment.getGradeWeight());
@@ -474,9 +475,13 @@ public final class AssignmentManager {
      * @param problemId
      *         The id of the course problem that is being added to the assignment.
      * @return True if it is successful.
+     * @throws AuthenticationException The user does not have permission to update the assignment.
+     * @throws DatabaseAccessException The assignment does not exist.
      */
-    static boolean mongoInsert(final DB dbs, final String assignmentId, final String problemId) {
+	static boolean mongoInsert(final DB dbs, final String assignmentId, final String problemId)
+            throws AuthenticationException, DatabaseAccessException {
         final DBObject cursor = dbs.getCollection(ASSIGNMENT_COLLECTION).findOne(new ObjectId(assignmentId));
+
 
         final DBCollection assignment = dbs.getCollection(ASSIGNMENT_COLLECTION);
         final DBObject updateObj = new BasicDBObject(PROBLEM_LIST, problemId);

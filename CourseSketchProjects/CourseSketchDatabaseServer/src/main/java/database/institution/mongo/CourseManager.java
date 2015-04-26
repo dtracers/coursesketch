@@ -125,7 +125,7 @@ public final class CourseManager {
         isUsers = authenticator.checkAuthentication(userId, usersList);
 
         if (!isAdmin && !isMod && !isUsers) {
-            throw new AuthenticationException(AuthenticationException.INVALID_PERMISSION);
+            throw new AuthenticationException("For course: " + courseId, AuthenticationException.INVALID_PERMISSION);
         }
 
         final SrlCourse.Builder exactCourse = SrlCourse.newBuilder();
@@ -153,7 +153,7 @@ public final class CourseManager {
                 stateBuilder.setPublished(true);
             } else {
                 if (!isAdmin || !isMod) {
-                    throw new DatabaseAccessException("The specific course is not published yet", true);
+                    throw new DatabaseAccessException("The specific course is not published yet: " + courseId, true);
                 } else {
                     stateBuilder.setPublished(false);
                 }
@@ -216,6 +216,11 @@ public final class CourseManager {
             final SrlCourse course) throws AuthenticationException, DatabaseAccessException {
         boolean update = false;
         final DBObject cursor = dbs.getCollection(COURSE_COLLECTION).findOne(new ObjectId(courseId.trim()));
+
+        if (cursor == null) {
+            throw new DatabaseAccessException("Course was not found with the following ID: " + courseId);
+        }
+
         DBObject updateObj = null;
         final DBCollection courses = dbs.getCollection(COURSE_COLLECTION);
 
@@ -224,7 +229,7 @@ public final class CourseManager {
         isMod = authenticator.checkAuthentication(userId, (ArrayList) cursor.get(MOD));
 
         if (!isAdmin && !isMod) {
-            throw new AuthenticationException(AuthenticationException.INVALID_PERMISSION);
+            throw new AuthenticationException("For course: " + courseId, AuthenticationException.INVALID_PERMISSION);
         }
 
         if (isAdmin) {
@@ -312,8 +317,11 @@ public final class CourseManager {
      * @param courseId     the course into which the assignment is being inserted into
      * @param assignmentId the assignment that is being inserted into the course.
      * @return true if the assignment was inserted correctly.
+     * @throws AuthenticationException The user does not have permission to update the assignment.
+     * @throws DatabaseAccessException The assignment does not exist.
      */
-    static boolean mongoInsertAssignmentIntoCourse(final DB dbs, final String courseId, final String assignmentId) {
+    static boolean mongoInsertAssignmentIntoCourse(final DB dbs, final String courseId, final String assignmentId)
+            throws AuthenticationException, DatabaseAccessException {
         final DBObject cursor = dbs.getCollection(COURSE_COLLECTION).findOne(new ObjectId(courseId.trim()));
         DBObject updateObj = null;
         final DBCollection courses = dbs.getCollection(COURSE_COLLECTION);
@@ -335,8 +343,11 @@ public final class CourseManager {
      * @param courseId  the course into which the assignment is being inserted into
      * @param lectureId the assignment that is being inserted into the course.
      * @return true if the assignment was inserted correctly.
+     * @throws AuthenticationException The user does not have permission to update the course.
+     * @throws DatabaseAccessException The course does not exist.
      */
-    static boolean mongoInsertLectureIntoCourse(final DB dbs, final String courseId, final String lectureId) {
+    static boolean mongoInsertLectureIntoCourse(final DB dbs, final String courseId, final String lectureId)
+            throws AuthenticationException, DatabaseAccessException {
         final DBObject cursor = dbs.getCollection(COURSE_COLLECTION).findOne(new ObjectId(courseId.trim()));
         DBObject updateObj = null;
         final DBCollection courses = dbs.getCollection(COURSE_COLLECTION);
