@@ -22,3 +22,5 @@ fi
 done <"$branches"
 git checkout "$oldbranch"
 git stash apply
+
+exit 0

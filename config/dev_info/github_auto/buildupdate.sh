@@ -34,3 +34,4 @@ scp -r "/home/sketchlab/VirtualBox VMs/Shared/coursesketch/CourseSketchProjects/
 
 ssh hammond@goldberglinux01.tamu.edu  
 
+exit 0
