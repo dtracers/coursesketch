@@ -122,7 +122,6 @@ function() {
         element.appendChild(register);
     }
     createLogin(createRegister);
-    element.style.display = 'flex';
 
     /**
      * Creates and loads the menu.
