@@ -108,8 +108,12 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
      *            asynchronous)
      */
     function getCourse(courseId, courseCallback) {
+        if (isUndefined(courseCallback)) {
+            throw new DatabaseException('Calling getCourse with an undefined callback');
+        }
+
         if (isUndefined(courseId) || courseId === null) {
-            courseCallback(new DatabaseException('The given id is not assigned', 'getting Course: ' + courseId));
+            throw new DatabaseException('The given id is not assigned', 'getting Course: ' + courseId);
         }
 
         getCourseLocal(courseId, function(course) {
@@ -343,6 +347,36 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
         });
     }
     parent.insertCourse = insertCourse;
+
+    /**
+     * Gets the course roster.
+     * @param courseId
+     * @param {Functon} callback A callback is called with a list of userIds
+     */
+    function getCourseRoster(courseId, callback) {
+        if (isUndefined(callback)) {
+            throw new DatabaseException('Calling getGrade with an undefined callback');
+        }
+
+        var idList = [ courseId ];
+
+        advanceDataListener.setListener(Request.MessageType.DATA_REQUEST, CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE_ROSTER, function(evt, item) {
+            advanceDataListener.removeListener(Request.MessageType.DATA_REQUEST, CourseSketch.PROTOBUF_UTIL.ItemQuery.GRADE);
+            // after listener is removed
+            if (isUndefined(item.data) || item.data === null || item.data.length <= 0) {
+                // not calling the state callback because this should skip that step.
+                callback(new DatabaseException('There are no grades for the course or the data does not exist ' +
+                courseId));
+                return;
+            }
+
+            var decodedRoster = CourseSketch.PROTOBUF_UTIL.decodeProtobuf(item.data[0], CourseSketch.PROTOBUF_UTIL.getIdChainClass());
+            callback(decodedRoster.idChain);
+        });
+
+        sendData.sendDataRequest(CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE_ROSTER, idList);
+    }
+    parent.getCourseRoster = getCourseRoster;
 
     /**
      * gets the id's of all of the courses in the user's local client.

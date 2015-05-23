@@ -19,14 +19,16 @@ import database.user.UserClient;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import protobuf.srl.grading.Grading.ProtoGrade;
+import protobuf.srl.grading.Grading.ProtoGradingPolicy;
 import protobuf.srl.lecturedata.Lecturedata.Lecture;
 import protobuf.srl.lecturedata.Lecturedata.LectureSlide;
 import protobuf.srl.school.School.SrlAssignment;
 import protobuf.srl.school.School.SrlBankProblem;
 import protobuf.srl.school.School.SrlCourse;
 import protobuf.srl.school.School.SrlGroup;
-import protobuf.srl.utils.Util.SrlPermission;
 import protobuf.srl.school.School.SrlProblem;
+import protobuf.srl.utils.Util.SrlPermission;
 import utilities.LoggingConstants;
 
 import java.net.UnknownHostException;
@@ -468,8 +470,48 @@ public final class MongoInstitution implements Institution {
     }
 
     @Override
+    public void insertGradingPolicy(final String userId, final ProtoGradingPolicy policy) throws AuthenticationException, DatabaseAccessException {
+        GradingPolicyManager.insertGradingPolicy(getInstance().auth, getInstance().database, userId, policy);
+    }
+
+    @Override
+    public ProtoGradingPolicy getGradingPolicy(final String courseId, final String userId) throws AuthenticationException, DatabaseAccessException {
+        return GradingPolicyManager.getGradingPolicy(getInstance().auth, getInstance().database, courseId, userId);
+    }
+
+    @Override
     public List<SrlBankProblem> getAllBankProblems(final String userId, final String courseId, final int page)
             throws AuthenticationException, DatabaseAccessException {
         return BankProblemManager.mongoGetAllBankProblems(getInstance().auth, getInstance().database, userId, courseId, page);
     }
+
+    @Override
+    public List<ProtoGrade> getAllAssignmentGradesInstructor(final String courseId, final String userId)
+            throws AuthenticationException, DatabaseAccessException {
+        return GradeManager.getAllAssignmentGradesInstructor(getInstance().auth, getInstance().database, courseId, userId);
+    }
+
+    @Override
+    public List<ProtoGrade> getAllAssignmentGradesStudent(final String courseId, final String userId)
+            throws AuthenticationException, DatabaseAccessException {
+        return GradeManager.getAllAssignmentGradesStudent(getInstance().auth, getInstance().database, courseId, userId);
+    }
+
+    @Override
+    public void addGrade(final String adderId, final ProtoGrade grade) throws AuthenticationException, DatabaseAccessException {
+        GradeManager.addGrade(getInstance().auth, getInstance().database, adderId, grade);
+    }
+
+    @Override
+    public ProtoGrade getGrade(final String requesterId, final String userId, final String courseId, final String assignmentId,
+            final String problemId) throws AuthenticationException, DatabaseAccessException {
+        return GradeManager.getGrade(getInstance().auth, getInstance().database, requesterId, userId, courseId, assignmentId, problemId);
+    }
+
+    @Override
+    public List<String> getCourseRoster(final String userId, final String courseId)
+            throws DatabaseAccessException, AuthenticationException {
+        return CourseManager.mongoGetCourseRoster(getInstance().auth, getInstance().database, userId, courseId);
+    }
+
 }

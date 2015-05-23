@@ -59,6 +59,7 @@ function ProtobufSetup() {
         buildTutorial();
         buildSubmissions();
         buildLectures();
+        buildGrade();
         return localScope;
     };
 
@@ -71,6 +72,12 @@ function ProtobufSetup() {
         var builder = localDcodeIo.ProtoBuf.protoFromFile(protobufDirectory + 'util.proto');
         var utilBuilder = builder.build(PROTOBUF_PACKAGE).srl.utils;
         assignValues(utilBuilder);
+    }
+
+    function buildGrade() {
+        var builder = localDcodeIo.ProtoBuf.protoFromFile(protobufDirectory + 'grading.proto');
+        var gradingBuilder = builder.build(PROTOBUF_PACKAGE).srl.grading;
+        assignValues(gradingBuilder);
     }
 
     /**
