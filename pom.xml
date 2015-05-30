@@ -571,7 +571,7 @@
 		<dependency>
 			<groupId>com.github.fakemongo</groupId>
 			<artifactId>fongo</artifactId>
-			<version>1f617199da133b0c2c6179f8df09ffce148d9284</version>
+			<version>31464c36b6938dd4e400edfa1ef5cd6114a40af7</version>
 		</dependency>
 
         <dependency>
