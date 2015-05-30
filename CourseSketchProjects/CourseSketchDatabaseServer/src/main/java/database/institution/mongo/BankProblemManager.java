@@ -1,5 +1,6 @@
 package database.institution.mongo;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -10,6 +11,7 @@ import database.UserUpdateHandler;
 import database.auth.AuthenticationException;
 import database.auth.Authenticator;
 import org.bson.types.ObjectId;
+import protobuf.srl.commands.Commands;
 import protobuf.srl.school.School;
 import protobuf.srl.school.School.SrlBankProblem;
 import protobuf.srl.utils.Util;
@@ -20,6 +22,7 @@ import java.util.List;
 
 import static database.DatabaseStringConstants.ADD_SET_COMMAND;
 import static database.DatabaseStringConstants.ADMIN;
+import static database.DatabaseStringConstants.BASE_SKETCH;
 import static database.DatabaseStringConstants.COURSE_COLLECTION;
 import static database.DatabaseStringConstants.COURSE_TOPIC;
 import static database.DatabaseStringConstants.IMAGE;
@@ -67,12 +70,19 @@ public final class BankProblemManager {
      */
     public static String mongoInsertBankProblem(final DB dbs, final SrlBankProblem problem) throws AuthenticationException {
         final DBCollection problemBankCollection = dbs.getCollection(PROBLEM_BANK_COLLECTION);
-        final BasicDBObject insertObject = new BasicDBObject(QUESTION_TEXT, problem.getQuestionText()).append(IMAGE, problem.getImage())
-                .append(SOLUTION_ID, problem.getSolutionId()).append(COURSE_TOPIC, problem.getCourseTopic()).append(SUB_TOPIC, problem.getSubTopic())
-                .append(SOURCE, problem.getSource()).append(QUESTION_TYPE, problem.getQuestionType().getNumber())
+        final BasicDBObject insertObject = new BasicDBObject(QUESTION_TEXT, problem.getQuestionText())
+                .append(IMAGE, problem.getImage())
+                .append(SOLUTION_ID, problem.getSolutionId())
+                .append(COURSE_TOPIC, problem.getCourseTopic())
+                .append(SUB_TOPIC, problem.getSubTopic())
+                .append(SOURCE, problem.getSource())
+                .append(QUESTION_TYPE, problem.getQuestionType().getNumber())
                 .append(SCRIPT, problem.getScript())
                 .append(KEYWORDS, problem.getOtherKeywordsList());
 
+        if (problem.getBaseSketch() != null) {
+            insertObject.append(BASE_SKETCH, problem.getBaseSketch().toByteArray());
+        }
         if (!problem.hasAccessPermission()) {
             insertObject.append(ADMIN, new ArrayList()).append(USERS, new ArrayList());
         } else {
@@ -142,6 +152,13 @@ public final class BankProblemManager {
         exactProblem.setSubTopic((String) dbObject.get(SUB_TOPIC));
         exactProblem.setSource((String) dbObject.get(SOURCE));
         exactProblem.setQuestionType(Util.QuestionType.valueOf((Integer) dbObject.get(QUESTION_TYPE)));
+        try {
+            if (dbObject.get(BASE_SKETCH) != null) {
+                exactProblem.setBaseSketch(Commands.SrlUpdateList.parseFrom((byte[]) dbObject.get(BASE_SKETCH)));
+            }
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
         exactProblem.addAllOtherKeywords((ArrayList) dbObject.get(KEYWORDS)); // change
         // arraylist
         final SrlPermission.Builder permissions = SrlPermission.newBuilder();
@@ -230,6 +247,9 @@ public final class BankProblemManager {
         if (problem.hasScript()) {
             updated.append(SET_COMMAND, new BasicDBObject(SCRIPT, problem.getScript()));
             update = true;
+        }
+        if (problem.hasBaseSketch()) {
+            updated.append(SET_COMMAND, new BasicDBObject(BASE_SKETCH, problem.getBaseSketch().toByteArray()));
         }
         if (problem.getOtherKeywordsCount() > 0) {
             updated.append(SET_COMMAND, new BasicDBObject(KEYWORDS, problem.getOtherKeywordsList()));

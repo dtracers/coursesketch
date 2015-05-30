@@ -1,8 +1,18 @@
+/**
+ * A manager for courses that talks with the remote server.
+ *
+ * @param {CourseSketchDatabase} parent The database that will hold the methods of this instance.
+ * @param {AdvanceDataListener} advanceDataListener A listener for the database.
+ * @param {IndexedDB} parentDatabase The local database
+ * @param {Function} sendData A function that makes sending data much easier
+ * @param {SrlRequest} Request A shortcut to a request
+ * @param {ByteBuffer} ByteBuffer Used in the case of longs for javascript.
+ * @constructor
+ */
 function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData, Request, ByteBuffer) {
     var COURSE_LIST = 'COURSE_LIST';
     var userCourseId = [];
     var userHasCourses = true;
-    var dataListener = advanceDataListener;
     var database = parentDatabase;
     var sendDataRequest = sendData.sendDataRequest;
 
@@ -15,7 +25,7 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
         var state = course.getState();
         var updateCourse = false;
         if (isUndefined(state) || state === null) {
-            state = CourseSketch.PROTOBUF_UTIL.State();
+            state = CourseSketch.prutil.State();
             updateCourse = true;
         }
         try {
@@ -76,7 +86,7 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
                 // gets the data from the database and calls the callback
                 try {
                     var bytes = ByteBuffer.fromBase64(result.data);
-                    stateCallback(CourseSketch.PROTOBUF_UTIL.getSrlCourseClass().decode(bytes), courseCallback);
+                    stateCallback(CourseSketch.prutil.getSrlCourseClass().decode(bytes), courseCallback);
                 } catch (exception) {
                     console.error(exception);
                     courseCallback(new DatabaseException('The result is undefined', 'getting Course: ' + courseId));
@@ -104,10 +114,13 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
 
         getCourseLocal(courseId, function(course) {
             if (isUndefined(course) || course instanceof DatabaseException) {
-                advanceDataListener.setListener(Request.MessageType.DATA_REQUEST, CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE, function(evt, item) {
-                    advanceDataListener.removeListener(Request.MessageType.DATA_REQUEST, CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE);
-                    var school = CourseSketch.PROTOBUF_UTIL.getSrlSchoolClass().decode(item.data);
-                    var course = school.courses[0];
+                advanceDataListener.setListener(Request.MessageType.DATA_REQUEST, CourseSketch.prutil.ItemQuery.COURSE, function(evt, item) {
+                    advanceDataListener.removeListener(Request.MessageType.DATA_REQUEST, CourseSketch.prutil.ItemQuery.COURSE);
+                    if (isUndefined(item.data) || item.data === null) {
+                        courseCallback(new DatabaseException('The data sent back from the server for course: ' + courseId + ' does not exist.'));
+                        return;
+                    }
+                    var course = CourseSketch.prutil.decodeProtobuf(item.data[0], CourseSketch.prutil.getSrlCourseClass());
                     if (isUndefined(course)) {
                         courseCallback(new DatabaseException('Course does not exist in the remote database.'));
                         return;
@@ -117,7 +130,7 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
                     });
                 });
                 // creates a request that is then sent to the server
-                sendDataRequest(CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE, [ courseId ]);
+                sendDataRequest(CourseSketch.prutil.ItemQuery.COURSE, [ courseId ]);
             } else {
                 // get course local calls state callback so it is not needed here if it exists.
                 courseCallback(course);
@@ -165,18 +178,27 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
             if (!isUndefined(localCallback)) {
                 localCallback();
             }
-            advanceDataListener.setListener(Request.MessageType.DATA_UPDATE, CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE, function(evt, item) {
-                advanceDataListener.removeListener(Request.MessageType.DATA_UPDATE, CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE);
+            advanceDataListener.setListener(Request.MessageType.DATA_UPDATE, CourseSketch.prutil.ItemQuery.COURSE, function(evt, item) {
+                advanceDataListener.removeListener(Request.MessageType.DATA_UPDATE, CourseSketch.prutil.ItemQuery.COURSE);
                  // we do not need to make server changes we just need to make sure it was successful.
                 if (!isUndefined(serverCallback)) {
                     serverCallback(item);
                 }
             });
-            sendData.sendDataUpdate(CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE, course.toArrayBuffer());
+            sendData.sendDataUpdate(CourseSketch.prutil.ItemQuery.COURSE, course.toArrayBuffer());
         });
     }
     parent.updateCourse = updateCourse;
 
+    /**
+     * Deletes a course from local database.
+     * This does not delete the id pointing to this item in the respective course.
+     *
+     * @param {String} courseId
+     *                ID of the course to delete
+     * @param {Function} courseCallback
+     *                function to be called after the deletion is done
+     */
     function deleteCourse(courseId, courseCallback) {
         database.deleteFromCourses(courseId, function(e, request) {
             // remove course
@@ -191,6 +213,10 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
     }
     parent.deleteCourse = deleteCourse;
 
+    /**
+     * Stores the course ids locally in the database.
+     * @param {List<String>} idList the list of ids the user currently have in their courses.
+     */
     function setCourseIdList(idList) {
         database.putInCourses(COURSE_LIST, idList); // no call back needed!
     }
@@ -204,8 +230,8 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
      */
     function getAllCourses(courseCallback, onlyLocal) {
         // there are no courses loaded onto this client!
-        advanceDataListener.setListener(Request.MessageType.DATA_REQUEST, CourseSketch.PROTOBUF_UTIL.ItemQuery.SCHOOL, function(evt, item) {
-            advanceDataListener.removeListener(Request.MessageType.DATA_REQUEST, CourseSketch.PROTOBUF_UTIL.ItemQuery.SCHOOL);
+        advanceDataListener.setListener(Request.MessageType.DATA_REQUEST, CourseSketch.prutil.ItemQuery.SCHOOL, function(evt, item) {
+            advanceDataListener.removeListener(Request.MessageType.DATA_REQUEST, CourseSketch.prutil.ItemQuery.SCHOOL);
             // there was an error getting the user classes.
             if (!isUndefined(item.returnText) && item.returnText !== '' && item.returnText !== 'null' && item.returnText !== null) {
                 userHasCourses = false;
@@ -213,8 +239,11 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
                 courseCallback(new DatabaseException(item.returnText, 'Getting all courses for user ' + parent.getCurrentId()));
                 return;
             }
-            var school = CourseSketch.PROTOBUF_UTIL.getSrlSchoolClass().decode(item.data);
-            var courseList = school.courses;
+            var courseList = [];
+            for (var i = 0; i < item.data.length; i++) {
+                courseList.push(CourseSketch.prutil.decodeProtobuf(item.data[i],
+                        CourseSketch.prutil.getSrlCourseClass()));
+            }
 
             var setCourseCallback = createBarrier(courseList.length, function() {
                 courseCallback(courseList);
@@ -225,19 +254,18 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
             }
         });
         if (userCourseId.length === 0 && userHasCourses && !onlyLocal) {
-            sendDataRequest(CourseSketch.PROTOBUF_UTIL.ItemQuery.SCHOOL, [ '' ]);
-            // console.log('course list from server polled!');
+            sendDataRequest(CourseSketch.prutil.ItemQuery.SCHOOL, [ '' ]);
         } else {
             // This calls the server for updates then creates a list from the
             // local data to appear fast
             // then updates list after server polling and comparing the two
             // list.
-            // console.log('course list from local place polled!');
             var courseList = [];
 
             // ask server for course list
-            if (!onlyLocal && false) { // TODO: this should maybe only ask after a certain amount of time since last updated?
-                sendDataRequest(CourseSketch.PROTOBUF_UTIL.ItemQuery.SCHOOL, [ '' ]);
+            if (!onlyLocal && false) {
+                // TODO: this should maybe only ask after a certain amount of time since last updated?
+                sendDataRequest(CourseSketch.prutil.ItemQuery.SCHOOL, [ '' ]);
             }
 
             var localCourseCallback = createBarrier(userCourseId.length, function() {
@@ -289,8 +317,8 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
                 courseCallback(course);
             }
 
-            advanceDataListener.setListener(Request.MessageType.DATA_INSERT, CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE, function(evt, item) {
-                advanceDataListener.removeListener(Request.MessageType.DATA_INSERT, CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE);
+            advanceDataListener.setListener(Request.MessageType.DATA_INSERT, CourseSketch.prutil.ItemQuery.COURSE, function(evt, item) {
+                advanceDataListener.removeListener(Request.MessageType.DATA_INSERT, CourseSketch.prutil.ItemQuery.COURSE);
                 var resultArray = item.getReturnText().split(':');
                 var oldId = resultArray[1].trim();
                 var newId = resultArray[0].trim();
@@ -311,7 +339,7 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
                     }
                 });
             });
-            sendData.sendDataInsert(CourseSketch.PROTOBUF_UTIL.ItemQuery.COURSE, course.toArrayBuffer());
+            sendData.sendDataInsert(CourseSketch.prutil.ItemQuery.COURSE, course.toArrayBuffer());
         });
     }
     parent.insertCourse = insertCourse;
@@ -350,5 +378,39 @@ function CourseDataManager(parent, advanceDataListener, parentDatabase, sendData
         if (list.length === 0) {
             clearCallback();
         }
+    };
+
+    /**
+     * Searches the course list.
+     * @param {Function} callback called with a list of all courses meeting the search requirements.
+     */
+    parent.searchCourses = function(callback) {
+        var request = CourseSketch.prutil.DataRequest();
+        var item = CourseSketch.prutil.ItemRequest();
+        item.query = CourseSketch.prutil.ItemQuery.COURSE_SEARCH;
+        request.items = [ item ];
+
+        /**
+         * Listens for the search result and displays the result given to it.
+         */
+        CourseSketch.dataListener.setListener(CourseSketch.prutil.getRequestClass().MessageType.DATA_REQUEST,
+                CourseSketch.prutil.ItemQuery.COURSE_SEARCH, function(evt, item) {
+            advanceDataListener.removeListener(Request.MessageType.DATA_REQUEST, CourseSketch.prutil.ItemQuery.SCHOOL);
+            // there was an error getting the user classes.
+            if (isUndefined(item.data) || item.data === null) {
+                callback(new DatabaseException('The data sent back from the server for searching courses'));
+                return;
+            }
+            var courseList = [];
+            for (var i = 0; i < item.data.length; i++) {
+                courseList.push(CourseSketch.prutil.decodeProtobuf(item.data[i],
+                        CourseSketch.prutil.getSrlCourseClass()));
+            }
+            var school = CourseSketch.prutil.decodeProtobuf(item.data, CourseSketch.prutil.getSrlSchoolClass());
+            var courseList = school.courses;
+        });
+
+        CourseSketch.connection.sendRequest(CourseSketch.prutil.createRequestFromData(request,
+                CourseSketch.prutil.getRequestClass().MessageType.DATA_REQUEST));
     };
 }

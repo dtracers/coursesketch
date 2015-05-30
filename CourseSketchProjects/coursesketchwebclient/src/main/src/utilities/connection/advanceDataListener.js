@@ -16,9 +16,16 @@ function AdvanceDataListener(connection, Request, defListener) {
     var localScope = this;
     var defaultListener = defListener || false;
     var errorListener = false;
+
+    /**
+     * Sets a listener that is called when an error occurs.
+     *
+     * @param {Function} func A function that is called when an error occurs.
+     */
     this.setErrorListener = function(func) {
         errorListener = func;
     };
+
     /**
      * Sets the listener to listen for database code.
      */
@@ -40,6 +47,7 @@ function AdvanceDataListener(connection, Request, defListener) {
         //console.log(queryType);
         localMap[queryType] = undefined;
     };
+
     /**
      * Gets the message type and the query type and finds the correct listener.
      *
@@ -48,13 +56,17 @@ function AdvanceDataListener(connection, Request, defListener) {
     function decode(evt, msg, messageType) {
         var localMap = requestMap[messageType];
         try {
+            if (msg.otherData === null) {
+                console.log('No data was attached to the result.');
+                return;
+            }
             try {
                 msg.otherData.mark();
             } catch (exception) {
-                console.log(exception);
+                CourseSketch.clientException(exception);
                 console.log(msg);
             }
-            var dataList = CourseSketch.PROTOBUF_UTIL.getDataResultClass().decode(msg.otherData).results;
+            var dataList = CourseSketch.prutil.getDataResultClass().decode(msg.otherData).results;
             for (var i = 0; i < dataList.length; i++) {
                 //console.log('Decoding listener');
                 var item = dataList[i];
@@ -63,17 +75,14 @@ function AdvanceDataListener(connection, Request, defListener) {
                     try {
                         func(evt, item);
                     } catch (exception) {
-                        console.error(exception);
-                        console.error(exception.stack);
-                        console.log(msg);
+                        CourseSketch.clientException(exception);
                     }
                 } else {
                     defListener(evt, item);
                 }
             }
         } catch (exception) {
-            console.error(exception);
-            console.error(exception.stack);
+            CourseSketch.clientException(exception);
             console.log('decoding data failed: ', msg);
             if (errorListener) {
                 errorListener(msg);

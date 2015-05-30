@@ -1,13 +1,14 @@
 package database.user;
 
+import protobuf.srl.query.Data;
+import protobuf.srl.school.School.SrlUser;
+
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import database.DatabaseAccessException;
 import database.UserUpdateHandler;
 import database.auth.AuthenticationException;
 import database.institution.mongo.MongoInstitution;
-import protobuf.srl.school.School.SrlSchool;
-import protobuf.srl.school.School.SrlUser;
 
 import java.util.List;
 
@@ -144,7 +145,8 @@ public final class UserClient {
      * @throws DatabaseAccessException
      *             Thrown if no dates exist.
      */
-    public static SrlSchool mongoGetReleventUpdates(final String userId, final long time) throws AuthenticationException, DatabaseAccessException {
+    public static List<Data.ItemResult> mongoGetReleventUpdates(final String userId, final long time)
+            throws AuthenticationException, DatabaseAccessException {
         return UserUpdateHandler.mongoGetAllRelevantUpdates(getInstance().database, userId, time);
     }
 }
