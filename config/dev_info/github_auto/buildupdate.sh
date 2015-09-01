@@ -5,6 +5,8 @@ cd github_auto
 
 /bin/bash automerge.sh
 success=$?
+echo "Setting permisions back to run"
+chmod 775 buildupdate.sh
 if [[ $success -eq 0 ]];
 then
     echo "updating branches Successful"
@@ -30,8 +32,9 @@ mv "/home/sketchlab/VirtualBox VMs/Shared/coursesketch/CourseSketchProjects/cour
 
 cp -r "/home/sketchlab/VirtualBox VMs/Shared/coursesketch/CourseSketchProjects/coursesketchwebclient/target/coursesketchwebclient/" "/home/sketchlab/coursesketch/"
 
-scp -r "/home/sketchlab/VirtualBox VMs/Shared/coursesketch/CourseSketchProjects/coursesketchwebclient/target/coursesketchwebclient" hammond@goldberglinux01.tamu.edu:local
 
-ssh hammond@goldberglinux01.tamu.edu  
+#scp -r "/home/sketchlab/VirtualBox VMs/Shared/coursesketch/CourseSketchProjects/coursesketchwebclient/target/coursesketchwebclient" hammond@goldberglinux01.tamu.edu:local
+
+#ssh hammond@goldberglinux01.tamu.edu
 
 exit 0
