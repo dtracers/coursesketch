@@ -1,4 +1,4 @@
-CS_HOME="/home/sketchlab/link_to_shared/coursesketch"
+CS_HOME="/home/sketchlab/VirtualBox\\ VMs/Shared/coursesketch"
 
 cd $CS_HOME
 cd "config/dev_info/github_auto"
@@ -35,7 +35,7 @@ fi
 
 cd config
 
-/bin/bash copyjars.sh <<< "/home/sketchlab/VirtualBox VMs/Shared/" 
+/bin/bash copyjars.sh <<< "/home/sketchlab/VirtualBox VMs/Shared/"
 
 mv "${CS_HOME}/CourseSketchProjects/coursesketchwebclient/target/website" "${CS_HOME}/CourseSketchProjects/coursesketchwebclient/target/coursesketchwebclient"
 
@@ -44,7 +44,6 @@ cp -r "${CS_HOME}/CourseSketchProjects/coursesketchwebclient/target/coursesketch
 cd "/home/sketchlab/coursesketch/"
 sudo find \( -type f -execdir chmod 644 {} \; \) \
                   -o \( -type d -execdir chmod 771 {} \; \)
-
 
 #scp -r "/home/sketchlab/VirtualBox VMs/Shared/coursesketch/CourseSketchProjects/coursesketchwebclient/target/coursesketchwebclient" hammond@goldberglinux01.tamu.edu:local
 
