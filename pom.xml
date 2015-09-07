@@ -20,6 +20,22 @@
         <module>CourseSketchProjects/CourseSketchAnswerCheckerServer</module>
     </modules>
 
+<<<<<<< HEAD
+=======
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+>>>>>>> buildUpdate
     <issueManagement>
         <url>https://github.com/${githubLocation}/issues</url>
         <system>GitHub Issues</system>
@@ -78,6 +94,24 @@
                 </plugins>
             </build>
         </profile>
+<<<<<<< HEAD
+=======
+
+        <!-- PROPERTY FILE PROFILES -->
+        <profile>
+            <id>ip_prop_file</id>
+            <activation>
+                <file>
+                    <!-- use the non default if it exists -->
+                    <exists>${basedir}/config/local/ips.prop</exists>
+                </file>
+            </activation>
+            <properties>
+                <param>${ipPropFile}</param>
+                <ipPropFile>${parentConfigLocationDir}/config/local/ips.prop</ipPropFile>
+            </properties>
+        </profile>
+>>>>>>> buildUpdate
     </profiles>
 
     <reporting>
@@ -131,11 +165,22 @@
     <!-- possible plugins https://code.google.com/p/maven-replacer-plugin/ -->
 
     <build>
+<<<<<<< HEAD
+=======
+        <extensions>
+            <extension><!-- Maven Build Extension: my Special Service -->
+                <groupId>com.github.dtracers</groupId>
+                <artifactId>external-properties-reader</artifactId>
+                <version>1.0.0</version>
+            </extension>
+        </extensions>
+>>>>>>> buildUpdate
         <finalName>${project.artifactId}-${project.version}-r${buildNumber}</finalName>
         <defaultGoal>clean install</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+<<<<<<< HEAD
                 <artifactId>maven-eclipse-plugin</artifactId>
                 <version>2.9</version>
                 <configuration>
@@ -143,6 +188,8 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+=======
+>>>>>>> buildUpdate
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
@@ -250,8 +297,13 @@
                                 </check>
                             </configuration>
                             <goals>
+<<<<<<< HEAD
                                 <!--	<goal>checkstyle</goal>
                                     <goal>check</goal> -->
+=======
+                                <goal>checkstyle</goal>
+                                <goal>check</goal>
+>>>>>>> buildUpdate
                             </goals>
                         </execution>
                     </executions>
@@ -265,7 +317,11 @@
                             <id>pmd</id>
                             <phase>validate</phase>
                             <goals>
+<<<<<<< HEAD
                                 <!-- goal>check</goal> -->
+=======
+                                <goal>check</goal>
+>>>>>>> buildUpdate
                             </goals>
                             <configuration>
                                 <rulesets>
@@ -279,7 +335,11 @@
                             <id>cpd</id>
                             <phase>validate</phase>
                             <goals>
+<<<<<<< HEAD
                                 <!--	<goal>cpd-check</goal> -->
+=======
+                                <goal>cpd-check</goal>
+>>>>>>> buildUpdate
                             </goals>
                             <configuration>
                                 <excludeFromFailureFile>${cpdExclude}</excludeFromFailureFile>
@@ -302,7 +362,11 @@
                         <execution>
                             <phase>compile</phase>
                             <goals>
+<<<<<<< HEAD
                                 <!--	<goal>check</goal> -->
+=======
+                                <goal>check</goal>
+>>>>>>> buildUpdate
                             </goals>
                         </execution>
                     </executions>
@@ -311,9 +375,12 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.17</version>
+<<<<<<< HEAD
                     <configuration>
                         <skipTests>true</skipTests>
                     </configuration>
+=======
+>>>>>>> buildUpdate
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -339,9 +406,15 @@
                     <executions>
                         <execution>
                             <goals>
+<<<<<<< HEAD
                                 <!--	<goal>clean</goal>
                                     <goal>cobertura</goal>
                                     <goal>check</goal> -->
+=======
+                                <goal>clean</goal>
+                                <goal>cobertura</goal>
+                                <goal>check</goal>
+>>>>>>> buildUpdate
                             </goals>
                         </execution>
                     </executions>
@@ -378,6 +451,11 @@
                         <version>1.9.7</version>
                     </configuration>
                 </plugin>
+<<<<<<< HEAD
+=======
+
+                <!-- meta build plugins -->
+>>>>>>> buildUpdate
                 <plugin>
                     <groupId>com.google.code.maven-replacer-plugin</groupId>
                     <artifactId>replacer</artifactId>
@@ -415,6 +493,74 @@
                                 </replacements>
                             </configuration>
                         </execution>
+<<<<<<< HEAD
+=======
+                        <!-- local config based replacements -->
+                        <execution>
+                            <id>ip_prop_replace</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>replace</goal>
+                            </goals>
+                            <configuration>
+                                <!-- file implemented by sub projects -->
+                                <replacements>
+                                    <replacement>
+                                        <token>ANSWER_IP_PROP</token>
+                                        <value>${answer_ip}</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>DATABASE_IP_PROP</token>
+                                        <value>${database_ip}</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>LOGIN_IP_PROP</token>
+                                        <value>${login_ip}</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>PROXY_IP_PROP</token>
+                                        <value>${proxy_ip}</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>SUBMISSION_IP_PROP</token>
+                                        <value>${submission_ip}</value>
+                                    </replacement>
+                                </replacements>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>ip_prop_reverse</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>replace</goal>
+                            </goals>
+                            <configuration>
+                                <!-- file implemented by sub projects -->
+                                <replacements>
+                                    <replacement>
+                                        <token>${answer_ip}</token>
+                                        <value>ANSWER_IP_PROP</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>${database_ip}</token>
+                                        <value>DATABASE_IP_PROP</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>${login_ip}</token>
+                                        <value>LOGIN_IP_PROP</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>${proxy_ip}</token>
+                                        <value>PROXY_IP_PROP</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>${submission_ip}</token>
+                                        <value>SUBMISSION_IP_PROP</value>
+                                    </replacement>
+                                </replacements>
+                            </configuration>
+                        </execution>
+>>>>>>> buildUpdate
                     </executions>
                 </plugin>
             </plugins>
@@ -476,6 +622,12 @@
         <!-- This needs to be overwritten in child poms -->
         <mainClass>fully.qualified.MainClass</mainClass>
         <parentConfigLocationDir>${basedir}</parentConfigLocationDir>
+<<<<<<< HEAD
+=======
+
+        <!-- Property files in local config -->
+        <ipPropFile>${parentConfigLocationDir}/config/local/ips_default.prop</ipPropFile>
+>>>>>>> buildUpdate
     </properties>
 
     <dependencies>
