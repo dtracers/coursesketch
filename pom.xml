@@ -91,8 +91,6 @@
                 </plugins>
             </build>
         </profile>
-<<<<<<< HEAD
-=======
 
         <!-- PROPERTY FILE PROFILES -->
         <profile>
@@ -108,7 +106,6 @@
                 <ipPropFile>${parentConfigLocationDir}/config/local/ips.prop</ipPropFile>
             </properties>
         </profile>
->>>>>>> buildUpdate
     </profiles>
 
     <reporting>
