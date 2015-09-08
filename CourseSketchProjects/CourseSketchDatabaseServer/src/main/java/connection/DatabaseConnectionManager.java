@@ -15,7 +15,7 @@ public class DatabaseConnectionManager extends MultiConnectionManager {
      * IP address for submission server.
      */
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    private static final String SUBMISSION_ADDRESS = "";
+    private static final String SUBMISSION_ADDRESS = "SUBMISSION_IP_PROP";
 
     /**
      *  Declaration and Definition of Logger.
