@@ -5,7 +5,6 @@ print "navigator to $current_path to start grabbing jars"
 serverName=('Database' 'Login' 'Submission' 'AnswerChecker' 'Recognition' 'Proxy')
 cd ../CourseSketchProjects
 
-
 length=$(expr ${#serverName[@]} - 1)
 echo $length
 for (( i=0; i<=$length; i++ ))
@@ -19,4 +18,3 @@ do
                 cp $fullPath "$result_path"
 	fi
 done
-
