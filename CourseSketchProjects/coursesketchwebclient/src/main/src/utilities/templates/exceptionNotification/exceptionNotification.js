@@ -29,7 +29,7 @@
      * @param {ProtoException} protoEx is a ProtoException passed is so the contents can be displayed.
      */
     function createShallowNotification(protoEx) {
-        setTimeout(function() {
+        try {
             var imageUrl = 'http://www.spilmanlaw.com/media%20content/media-content/Stock%20Photos/Alert.jpg?width=2218&height=2216&ext=.jpg';
             var notification = new Notification(protoEx.getExceptionType(), {
                 body: protoEx.getMssg(),
@@ -40,14 +40,16 @@
              * Called when the html5 notification is clicked.
              * @param {Event} event On Click event.
              */
-            notification.onclick = function (event) {
+            notification.onclick = function(event) {
                 console.log(event);
                 createDeepNotification(protoEx, CourseSketch.getExceptionParentElement());
             };
-            setTimeout(function () {
+            setTimeout(function() {
                 notification.close();
             }, 5501);
-        }, 10);
+        } catch (exception) {
+            console.log('Unable to create exception', protoEx);
+        }
     }
 
     /**
