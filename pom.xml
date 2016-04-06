@@ -147,6 +147,8 @@
                         <format>html</format>
                         <format>xml</format>
                     </formats>
+					<!-- aggregated reports for multi-module projects -->
+					<aggregate>true</aggregate>
                 </configuration>
             </plugin>
         </plugins>
@@ -258,6 +260,13 @@
                     </filesets>
                 </configuration>
             </plugin>
+			<plugin>
+				<groupId>org.eluder.coveralls</groupId>
+				<artifactId>coveralls-maven-plugin</artifactId>
+				<version>4.1.0</version>
+				<configuration>
+				</configuration>
+			</plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -420,6 +429,12 @@
                             <packageLineRate>${packageBranchLevel}</packageLineRate>
                             <packageBranchRate>${packageLineLevel}</packageBranchRate>
                         </check>
+						<formats>
+							<format>html</format>
+							<format>xml</format>
+						</formats>
+						<!-- aggregated reports for multi-module projects -->
+						<aggregate>true</aggregate>
                     </configuration>
                     <executions>
                         <execution>
