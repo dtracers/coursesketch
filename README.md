@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/tracyhammond/coursesketch.svg?branch=master)](https://travis-ci.org/tracyhammond/coursesketch)
-
+[![Coverage Status](https://coveralls.io/repos/github/dtracers/coursesketch/badge.svg?branch=master)](https://coveralls.io/github/dtracers/coursesketch?branch=master)
 coursesketch
 
 
