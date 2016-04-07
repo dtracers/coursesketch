@@ -264,7 +264,7 @@
 			    <!-- the official version currently does not work -->
 				<groupId>com.github.dtracers</groupId>
 				<artifactId>coveralls-maven-plugin</artifactId>
-				<version>-SNAPSHOT</version>
+				<version>4.2.1</version>
 				<configuration>
 					<timestampFormat>EpochMillis</timestampFormat>
 				</configuration>
