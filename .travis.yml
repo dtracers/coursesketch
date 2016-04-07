@@ -34,4 +34,4 @@ script:
  - "mvn -B -V test | grep -v 'Download.*: http'"
 
 after_success:
- - "GRUNT_SKIP_TESTS=true mvn org.eluder.coveralls:coveralls-maven-plugin:report"
+ - "GRUNT_SKIP_TESTS=true mvn cobertura:cobertura org.eluder.coveralls:coveralls-maven-plugin:report"
