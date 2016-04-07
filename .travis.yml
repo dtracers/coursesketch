@@ -32,4 +32,6 @@ install:
 script:
  - "set -o pipefail"
  - "mvn -B -V test | grep -v 'Download.*: http'"
- 
+
+after_success:
+  - mvn cobertura:cobertura org.eluder.coveralls:coveralls-maven-plugin:report
