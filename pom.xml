@@ -261,9 +261,10 @@
                 </configuration>
             </plugin>
 			<plugin>
-				<groupId>com.github.trautonen</groupId>
+			    <!-- the official version currently does not work -->
+				<groupId>com.github.dtracers</groupId>
 				<artifactId>coveralls-maven-plugin</artifactId>
-				<version>a768fae9fb</version>
+				<version>-SNAPSHOT</version>
 				<configuration>
 					<timestampFormat>EpochMillis</timestampFormat>
 				</configuration>
